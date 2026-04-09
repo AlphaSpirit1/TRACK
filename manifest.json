@@ -2,11 +2,15 @@
   "name": "OPTIMIZE — Personal System",
   "short_name": "OPTIMIZE",
   "description": "Personal growth tracking system",
-  "start_url": ".",
+
+  "start_url": "/TRACK/",
+  "scope": "/TRACK/",
+
   "display": "standalone",
   "background_color": "#0a0a0f",
   "theme_color": "#0a0a0f",
   "orientation": "portrait",
+
   "icons": [
     {
       "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%230a0a0f' rx='32'/><text y='130' x='96' text-anchor='middle' font-size='120'>⚡</text></svg>",
@@ -21,6 +25,7 @@
       "purpose": "any maskable"
     }
   ],
+
   "categories": ["productivity", "health", "lifestyle"],
   "lang": "en-IN"
 }
