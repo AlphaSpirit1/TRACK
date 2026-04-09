@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="theme-color" content="#0a0a0f"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="OPTIMIZE"/>
+<title>OPTIMIZE — Personal System</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:       #0a0a0f;
+  --bg1:      #11111a;
+  --bg2:      #18182a;
+  --bg3:      #1f1f35;
+  --card:     #16162280;
+  --border:   #ffffff0f;
+  --border2:  #ffffff1a;
+  --p:        #7c6aff;
+  --p2:       #a08bff;
+  --teal:     #00e5b0;
+  --coral:    #ff5f6d;
+  --gold:     #ffd166;
+  --white:    #f0f0f8;
+  --muted:    #6b6b8a;
+  --muted2:   #4a4a6a;
+  --physical: #ff5f6d;
+  --study:    #7c6aff;
+  --personal: #00e5b0;
+  --font-head: 'Syne', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-body: 'DM Sans', sans-serif;
+  --r: 16px;
+  --r2: 12px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--white);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Noise texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+/* ─── Layout ─── */
+#app { position: relative; z-index: 1; min-height: 100dvh; display: flex; flex-direction: column; }
+
+.screen { display: none; flex-direction: column; flex: 1; animation: fadeUp 0.3s ease; }
+.screen.active { display: flex; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Header ─── */
+.header {
+  padding: 52px 20px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.header-title {
+  font-family: var(--font-head);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+.header-sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+.header-action {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.header-action:active { background: var(--bg3); }
+
+/* ─── Scroll area ─── */
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 16px 100px;
+  -webkit-overflow-scrolling: touch;
+}
+.scroll-area::-webkit-scrollbar { display: none; }
+
+/* ─── Bottom Nav ─── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0; right: 0;
+  background: rgba(10,10,15,0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  padding: 10px 0 calc(10px + var(--safe-bottom));
+  display: flex;
+  z-index: 100;
+}
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: opacity 0.2s;
+  opacity: 0.4;
+}
+.nav-item.active { opacity: 1; }
+.nav-item .nav-icon { font-size: 22px; line-height: 1; }
+.nav-item .nav-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.nav-item.active .nav-label { color: var(--p2); }
+
+/* ─── Cards ─── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px;
+  margin-bottom: 12px;
+  backdrop-filter: blur(8px);
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.card-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.section-title {
+  font-family: var(--font-head);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 20px 0 10px;
+}
+
+/* ─── Goal Cards ─── */
+.goal-card {
+  border-radius: var(--r);
+  padding: 16px;
+  margin-bottom: 10px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s, opacity 0.15s;
+  border: 1px solid var(--border);
+}
+.goal-card:active { transform: scale(0.98); opacity: 0.9; }
+.goal-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.06;
+}
+.goal-card.physical { background: rgba(255,95,109,0.08); border-color: rgba(255,95,109,0.2); }
+.goal-card.physical::before { background: var(--physical); }
+.goal-card.study    { background: rgba(124,106,255,0.08); border-color: rgba(124,106,255,0.2); }
+.goal-card.study::before    { background: var(--study); }
+.goal-card.personal { background: rgba(0,229,176,0.08); border-color: rgba(0,229,176,0.2); }
+.goal-card.personal::before { background: var(--personal); }
+
+.goal-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.goal-cat-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-weight: 700;
+}
+.physical .goal-cat-badge { background: rgba(255,95,109,0.15); color: var(--physical); }
+.study    .goal-cat-badge { background: rgba(124,106,255,0.15); color: var(--p2); }
+.personal .goal-cat-badge { background: rgba(0,229,176,0.15); color: var(--teal); }
+
+.goal-days-left {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+.goal-days-left.urgent { color: var(--coral); }
+.goal-days-left.expired { color: var(--coral); font-weight: 700; }
+
+.goal-title {
+  font-family: var(--font-head);
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+.goal-metric {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Progress bar */
+.goal-progress {
+  margin-top: 12px;
+  height: 3px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.goal-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+.physical .goal-progress-fill { background: var(--physical); }
+.study    .goal-progress-fill { background: var(--p2); }
+.personal .goal-progress-fill { background: var(--teal); }
+
+/* Extension pips */
+.ext-pips {
+  display: flex;
+  gap: 4px;
+  margin-top: 10px;
+}
+.ext-pip {
+  width: 20px; height: 6px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.08);
+}
+.ext-pip.used { background: var(--gold); opacity: 0.6; }
+.ext-pip.available { background: var(--gold); }
+
+/* ─── Daily Log ─── */
+.log-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.log-item {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.log-item-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.log-item-value {
+  font-family: var(--font-head);
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+}
+.log-slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+}
+.log-slider.sleep  { background: linear-gradient(to right, var(--teal) 0%, var(--teal) var(--val, 50%), var(--bg3) var(--val, 50%)); }
+.log-slider.study  { background: linear-gradient(to right, var(--p2) 0%, var(--p2) var(--val, 50%), var(--bg3) var(--val, 50%)); }
+.log-slider.phys   { background: linear-gradient(to right, var(--physical) 0%, var(--physical) var(--val, 50%), var(--bg3) var(--val, 50%)); }
+.log-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+
+.day-type-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.day-type-btn {
+  flex: 1;
+  padding: 10px 4px;
+  border-radius: var(--r2);
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.day-type-btn.selected.full     { background: rgba(0,229,176,0.12); border-color: var(--teal); color: var(--teal); }
+.day-type-btn.selected.flex     { background: rgba(255,209,102,0.12); border-color: var(--gold); color: var(--gold); }
+.day-type-btn.selected.rest     { background: rgba(255,95,109,0.12); border-color: var(--coral); color: var(--coral); }
+
+.mins-status {
+  border-radius: var(--r2);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+.mins-status.met     { background: rgba(0,229,176,0.08); border: 1px solid rgba(0,229,176,0.2); }
+.mins-status.not-met { background: rgba(255,95,109,0.08); border: 1px solid rgba(255,95,109,0.2); }
+.mins-status-icon { font-size: 22px; }
+.mins-status-text { flex: 1; }
+.mins-status-title { font-weight: 600; font-size: 13px; }
+.mins-status-detail { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+textarea.log-notes {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 12px;
+  resize: none;
+  outline: none;
+  min-height: 80px;
+  margin-bottom: 12px;
+}
+textarea.log-notes::placeholder { color: var(--muted2); }
+textarea.log-notes:focus { border-color: var(--border2); }
+
+/* ─── Buttons ─── */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 15px;
+  border-radius: var(--r);
+  border: none;
+  font-family: var(--font-head);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary   { background: var(--p); color: white; }
+.btn-teal      { background: var(--teal); color: #000; }
+.btn-ghost     { background: var(--bg2); color: var(--white); border: 1px solid var(--border2); }
+.btn-danger    { background: rgba(255,95,109,0.15); color: var(--coral); border: 1px solid rgba(255,95,109,0.3); }
+.btn-gold      { background: rgba(255,209,102,0.15); color: var(--gold); border: 1px solid rgba(255,209,102,0.3); }
+
+/* ─── Stats ─── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.stat-box {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 14px 10px;
+  text-align: center;
+}
+.stat-num {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 700;
+  display: block;
+}
+.stat-label {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 4px;
+  display: block;
+}
+
+/* ─── Settings ─── */
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.setting-row:last-child { border-bottom: none; }
+.setting-info {}
+.setting-name { font-size: 14px; font-weight: 500; }
+.setting-desc { font-size: 11px; color: var(--muted); margin-top: 3px; }
+.setting-val {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--p2);
+  cursor: pointer;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 6px 12px;
+}
+
+/* Toggle */
+.toggle {
+  position: relative;
+  width: 46px; height: 26px;
+  background: var(--bg3);
+  border-radius: 13px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border: 1px solid var(--border2);
+  flex-shrink: 0;
+}
+.toggle.on { background: var(--p); }
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: white;
+  transition: transform 0.2s;
+}
+.toggle.on::after { transform: translateX(20px); }
+
+/* ─── Modal / Sheet ─── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 200;
+  display: none;
+  align-items: flex-end;
+  animation: fadeIn 0.2s ease;
+}
+.modal-overlay.open { display: flex; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.bottom-sheet {
+  background: var(--bg1);
+  border-radius: 24px 24px 0 0;
+  padding: 16px 20px calc(20px + var(--safe-bottom));
+  width: 100%;
+  max-height: 90dvh;
+  overflow-y: auto;
+  animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+.sheet-handle {
+  width: 36px; height: 4px;
+  background: var(--muted2);
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+.sheet-title {
+  font-family: var(--font-head);
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+.sheet-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+/* ─── Form ─── */
+.form-group { margin-bottom: 16px; }
+.form-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 8px;
+}
+.form-input {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: var(--r2);
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: 15px;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus { border-color: var(--p); }
+.form-input::placeholder { color: var(--muted2); }
+
+.cat-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.cat-btn {
+  flex: 1;
+  padding: 10px 6px;
+  border-radius: var(--r2);
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.cat-btn.sel.physical { background: rgba(255,95,109,0.15); border-color: var(--physical); color: var(--physical); }
+.cat-btn.sel.study    { background: rgba(124,106,255,0.15); border-color: var(--p2); color: var(--p2); }
+.cat-btn.sel.personal { background: rgba(0,229,176,0.15); border-color: var(--teal); color: var(--teal); }
+
+/* ─── Expired Goal Overlay ─── */
+.expired-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.92);
+  z-index: 300;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+}
+.expired-overlay.open { display: flex; }
+.expired-icon { font-size: 64px; margin-bottom: 16px; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+.expired-title {
+  font-family: var(--font-head);
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 8px;
+  color: var(--gold);
+}
+.expired-sub { font-size: 14px; color: var(--muted); margin-bottom: 32px; line-height: 1.6; }
+.expired-actions { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+
+/* ─── History ─── */
+.history-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+.history-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.history-info { flex: 1; }
+.history-name { font-size: 13px; font-weight: 500; }
+.history-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.history-outcome {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+
+/* ─── Streak ─── */
+.streak-display {
+  text-align: center;
+  padding: 20px;
+}
+.streak-num {
+  font-family: var(--font-mono);
+  font-size: 64px;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
+  display: block;
+}
+.streak-label { font-size: 13px; color: var(--muted); margin-top: 6px; }
+
+/* ─── Toast ─── */
+.toast {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 30px;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 400;
+  opacity: 0;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ─── Onboarding ─── */
+#onboarding {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  text-align: center;
+}
+.onboard-icon { font-size: 72px; margin-bottom: 24px; }
+.onboard-title { font-family: var(--font-head); font-size: 32px; font-weight: 800; margin-bottom: 12px; }
+.onboard-sub { font-size: 15px; color: var(--muted); line-height: 1.6; margin-bottom: 40px; }
+</style>
+</head>
+<body>
+
+<div id="onboarding">
+  <div class="onboard-icon">⚡</div>
+  <div class="onboard-title">OPTIMIZE</div>
+  <div class="onboard-sub">Your personal growth system.<br/>Structured. Flexible. Unbreakable.</div>
+  <button class="btn btn-primary" style="max-width:300px" onclick="startSetup()">Set Up System →</button>
+</div>
+
+<div id="app" style="display:none">
+  <!-- ── TOAST ── -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ── BOTTOM NAV ── -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" onclick="showScreen('home')" id="nav-home">
+      <span class="nav-icon">⚡</span>
+      <span class="nav-label">Today</span>
+    </div>
+    <div class="nav-item" onclick="showScreen('goals')" id="nav-goals">
+      <span class="nav-icon">🎯</span>
+      <span class="nav-label">Goals</span>
+    </div>
+    <div class="nav-item" onclick="showScreen('log')" id="nav-log">
+      <span class="nav-icon">📝</span>
+      <span class="nav-label">Log</span>
+    </div>
+    <div class="nav-item" onclick="showScreen('stats')" id="nav-stats">
+      <span class="nav-icon">📈</span>
+      <span class="nav-label">Stats</span>
+    </div>
+    <div class="nav-item" onclick="showScreen('settings')" id="nav-settings">
+      <span class="nav-icon">⚙️</span>
+      <span class="nav-label">Settings</span>
+    </div>
+  </nav>
+
+  <!-- ════════════════ HOME SCREEN ════════════════ -->
+  <div class="screen active" id="screen-home">
+    <div class="header">
+      <div>
+        <div class="header-title" id="home-greeting">Good morning ⚡</div>
+        <div class="header-sub" id="home-date">Loading...</div>
+      </div>
+      <div class="header-action" onclick="showScreen('log')">＋</div>
+    </div>
+    <div class="scroll-area">
+
+      <!-- Streak -->
+      <div class="card" style="text-align:center;padding:20px">
+        <div class="card-label" style="margin-bottom:8px">Current Streak</div>
+        <span class="streak-num" id="home-streak">0</span>
+        <div class="streak-label">days logged 🔥</div>
+      </div>
+
+      <!-- Today Status -->
+      <div class="section-title">TODAY'S MINIMUMS</div>
+      <div id="home-mins-status"></div>
+
+      <!-- Active Goals -->
+      <div class="section-title">ACTIVE GOALS</div>
+      <div id="home-goals-list"></div>
+
+      <!-- Quick Log Button -->
+      <button class="btn btn-primary" onclick="showScreen('log')" style="margin-top:8px">
+        ＋ &nbsp;Log Today
+      </button>
+    </div>
+  </div>
+
+  <!-- ════════════════ GOALS SCREEN ════════════════ -->
+  <div class="screen" id="screen-goals">
+    <div class="header">
+      <div>
+        <div class="header-title">Goals</div>
+        <div class="header-sub">Active Cycles</div>
+      </div>
+    </div>
+    <div class="scroll-area">
+      <div id="goals-active-list"></div>
+
+      <div class="section-title">HISTORY</div>
+      <div id="goals-history-list"></div>
+    </div>
+  </div>
+
+  <!-- ════════════════ LOG SCREEN ════════════════ -->
+  <div class="screen" id="screen-log">
+    <div class="header">
+      <div>
+        <div class="header-title">Daily Log</div>
+        <div class="header-sub" id="log-date-label">Today</div>
+      </div>
+    </div>
+    <div class="scroll-area">
+      <div class="section-title">DAY TYPE</div>
+      <div class="day-type-row">
+        <div class="day-type-btn full" onclick="selectDayType('Full Day', this)">🟢 Full</div>
+        <div class="day-type-btn flex" onclick="selectDayType('Flex Day', this)">🟡 Flex</div>
+        <div class="day-type-btn rest" onclick="selectDayType('Rest Day', this)">🔴 Rest</div>
+      </div>
+
+      <div class="section-title">HOURS</div>
+      <div class="log-grid">
+        <div class="log-item">
+          <div class="log-item-label">😴 Sleep</div>
+          <div class="log-item-value" id="val-sleep">7.0</div>
+          <input type="range" class="log-slider sleep" min="4" max="12" step="0.5" value="7"
+            id="sl-sleep" oninput="updateSlider(this,'sleep',4,12,'val-sleep')"/>
+        </div>
+        <div class="log-item">
+          <div class="log-item-label">📚 Study</div>
+          <div class="log-item-value" id="val-study">1.5</div>
+          <input type="range" class="log-slider study" min="0" max="4" step="0.5" value="1.5"
+            id="sl-study" oninput="updateSlider(this,'study',0,4,'val-study')"/>
+        </div>
+        <div class="log-item" style="grid-column:span 2">
+          <div class="log-item-label">🏃 Physical</div>
+          <div class="log-item-value" id="val-phys">1.0</div>
+          <input type="range" class="log-slider phys" min="0" max="4" step="0.5" value="1"
+            id="sl-phys" oninput="updateSlider(this,'phys',0,4,'val-phys')"/>
+        </div>
+      </div>
+
+      <div id="log-mins-check"></div>
+
+      <div class="section-title">WIN OF THE DAY</div>
+      <textarea class="log-notes" id="log-win" placeholder="What did you do well today?"></textarea>
+
+      <div class="section-title">NOTES / MOOD</div>
+      <textarea class="log-notes" id="log-notes" placeholder="Any thoughts, mood, energy level..."></textarea>
+
+      <button class="btn btn-teal" onclick="saveLog()" style="margin-top:4px">
+        ✓ &nbsp;Save Log
+      </button>
+    </div>
+  </div>
+
+  <!-- ════════════════ STATS SCREEN ════════════════ -->
+  <div class="screen" id="screen-stats">
+    <div class="header">
+      <div>
+        <div class="header-title">Stats</div>
+        <div class="header-sub">Last 30 Days</div>
+      </div>
+    </div>
+    <div class="scroll-area">
+      <div class="stats-row" id="stats-boxes"></div>
+
+      <div class="section-title">AVERAGES (30 DAYS)</div>
+      <div class="card" id="stats-avgs"></div>
+
+      <div class="section-title">WEEK OVERVIEW</div>
+      <div id="stats-week"></div>
+    </div>
+  </div>
+
+  <!-- ════════════════ SETTINGS SCREEN ════════════════ -->
+  <div class="screen" id="screen-settings">
+    <div class="header">
+      <div>
+        <div class="header-title">Settings</div>
+        <div class="header-sub">System Config</div>
+      </div>
+    </div>
+    <div class="scroll-area">
+      <div class="section-title">NOTIFICATIONS</div>
+      <div class="card">
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">Daily Check-in</div>
+            <div class="setting-desc">Remind me to log my day</div>
+          </div>
+          <div class="toggle on" id="toggle-notif" onclick="toggleNotif(this)"></div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">Reminder Time</div>
+            <div class="setting-desc">IST — tap to change</div>
+          </div>
+          <input type="time" class="setting-val" id="notif-time" value="21:30" onchange="saveNotifTime(this.value)"/>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">Goal Expiry Alerts</div>
+            <div class="setting-desc">1 day before goal ends</div>
+          </div>
+          <div class="toggle on" id="toggle-expiry" onclick="toggleSetting(this,'notifExpiry')"></div>
+        </div>
+      </div>
+
+      <div class="section-title">MINIMUMS</div>
+      <div class="card">
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">Sleep minimum</div>
+          </div>
+          <select class="setting-val" id="min-sleep" onchange="saveMin('sleep',this.value)">
+            <option value="6">6h</option><option value="7">7h</option><option value="8">8h</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">Study minimum</div>
+          </div>
+          <select class="setting-val" id="min-study" onchange="saveMin('study',this.value)">
+            <option value="1">1h</option><option value="1.5">1.5h</option><option value="2">2h</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">Physical minimum</div>
+          </div>
+          <select class="setting-val" id="min-phys" onchange="saveMin('phys',this.value)">
+            <option value="0.5">30min</option><option value="1">1h</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section-title">DATA</div>
+      <div class="card">
+        <button class="btn btn-ghost" onclick="exportData()" style="margin-bottom:10px">📤 Export All Data (JSON)</button>
+        <button class="btn btn-danger" onclick="confirmReset()">🗑️ Reset All Data</button>
+      </div>
+
+      <div style="text-align:center;padding:20px 0;font-family:var(--font-mono);font-size:10px;color:var(--muted2)">
+        OPTIMIZE v1.0 · Personal System
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODALS ════ -->
+
+<!-- New Goal Sheet -->
+<div class="modal-overlay" id="modal-new-goal">
+  <div class="bottom-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">New Goal</div>
+    <div class="sheet-sub">Set specific, measurable, time-bound</div>
+
+    <div class="form-group">
+      <label class="form-label">Category</label>
+      <div class="cat-selector">
+        <div class="cat-btn" onclick="selectCat('physical',this)">🏃 Physical</div>
+        <div class="cat-btn" onclick="selectCat('study',this)">📚 Study</div>
+        <div class="cat-btn" onclick="selectCat('personal',this)">🌱 Personal</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Goal Statement</label>
+      <input class="form-input" id="new-goal-title" placeholder="e.g. Hit 8/10 accurate throws"/>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Success Metric</label>
+      <input class="form-input" id="new-goal-metric" placeholder="e.g. 8 out of 10 consistently"/>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Duration (days)</label>
+      <div style="display:flex;gap:8px">
+        <div class="day-type-btn" onclick="setDuration(14,this)" style="font-size:12px">14 days</div>
+        <div class="day-type-btn" onclick="setDuration(21,this)" style="font-size:12px">21 days</div>
+        <div class="day-type-btn" onclick="setDuration(28,this)" style="font-size:12px">28 days</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal('modal-new-goal')">Cancel</button>
+      <button class="btn btn-primary" style="flex:2" onclick="saveGoal()">Lock It In →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Goal Expired Overlay -->
+<div class="expired-overlay" id="expired-overlay">
+  <div class="expired-icon">⏰</div>
+  <div class="expired-title" id="exp-title">Time's Up!</div>
+  <div class="expired-sub" id="exp-sub">Your goal cycle has ended.<br/>Time to make a decision.</div>
+  <div class="expired-actions">
+    <button class="btn btn-teal" onclick="resolveGoal('achieved')">✅ Achieved — Set New Goal</button>
+    <button class="btn btn-gold" onclick="resolveGoal('extend')">🔄 Use Extension (+2 weeks)</button>
+    <button class="btn btn-ghost" onclick="resolveGoal('accept')">⏭️ Accept & Move On</button>
+  </div>
+  <div id="ext-remaining-msg" style="margin-top:16px;font-size:12px;color:var(--muted)"></div>
+</div>
+
+<!-- Extension Sheet (choose new goal after extend/achieve) -->
+<div class="modal-overlay" id="modal-new-after">
+  <div class="bottom-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="new-after-title">New Goal</div>
+    <div class="sheet-sub" id="new-after-sub">Previous goal completed. Choose a new focus.</div>
+    <div class="form-group">
+      <label class="form-label">New Goal Statement</label>
+      <input class="form-input" id="new-after-goal" placeholder="What's next?"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Success Metric</label>
+      <input class="form-input" id="new-after-metric" placeholder="How will you measure it?"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Duration</label>
+      <div style="display:flex;gap:8px">
+        <div class="day-type-btn" onclick="setDuration2(14,this)" style="font-size:12px">14 days</div>
+        <div class="day-type-btn" onclick="setDuration2(21,this)" style="font-size:12px">21 days</div>
+        <div class="day-type-btn" onclick="setDuration2(28,this)" style="font-size:12px">28 days</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="saveNewAfterGoal()">Set Goal →</button>
+  </div>
+</div>
+
+<!-- Setup Onboarding Notification Modal -->
+<div class="modal-overlay" id="modal-setup">
+  <div class="bottom-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">⚡ Quick Setup</div>
+    <div class="sheet-sub">Set your daily check-in time (IST)</div>
+    <div class="form-group">
+      <label class="form-label">Your Name</label>
+      <input class="form-input" id="setup-name" placeholder="What should I call you?"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Daily Reminder Time</label>
+      <input type="time" class="form-input" id="setup-time" value="21:30"/>
+    </div>
+    <button class="btn btn-primary" onclick="finishSetup()">Start Optimizing →</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let S = {
+  name: '',
+  notifTime: '21:30',
+  notifEnabled: true,
+  notifExpiry: true,
+  mins: { sleep: 6, study: 1, phys: 0.5 },
+  goals: [],        // { id, cat, title, metric, startDate, endDate, status, extensions, outcome }
+  logs: [],         // { date, dayType, sleep, study, phys, win, notes }
+  goalHistory: [],
+  selectedDuration: 21,
+  selectedDuration2: 21,
+  selectedCat: null,
+  selectedDayType: null,
+  pendingExpiredGoal: null,
+  pendingResolution: null,
+};
+
+function load() {
+  const d = localStorage.getItem('optimize_v1');
+  if (d) S = { ...S, ...JSON.parse(d) };
+}
+function save() {
+  localStorage.setItem('optimize_v1', JSON.stringify(S));
+}
+load();
+
+// ══════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════
+function today() { return new Date().toISOString().split('T')[0]; }
+function dateStr(d) {
+  return new Date(d).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+}
+function daysLeft(endDate) {
+  const diff = new Date(endDate) - new Date(today());
+  return Math.ceil(diff / 86400000);
+}
+function pct(a,b) { return b===0?0:Math.round((a/b)*100); }
+
+function toast(msg, dur=2200) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  document.getElementById('nav-'+id).classList.add('active');
+  if (id==='home')     renderHome();
+  if (id==='goals')    renderGoals();
+  if (id==='stats')    renderStats();
+  if (id==='settings') renderSettings();
+  if (id==='log')      renderLog();
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+
+// ══════════════════════════════════════════════════════
+// ONBOARDING
+// ══════════════════════════════════════════════════════
+function startSetup() {
+  document.getElementById('onboarding').style.display = 'none';
+  openModal('modal-setup');
+}
+
+async function finishSetup() {
+  const name = document.getElementById('setup-name').value.trim() || 'You';
+  const time = document.getElementById('setup-time').value || '21:30';
+  S.name = name;
+  S.notifTime = time;
+  save();
+  closeModal('modal-setup');
+  document.getElementById('app').style.display = 'flex';
+  await requestNotifPermission();
+  scheduleNotification();
+  renderHome();
+}
+
+// ══════════════════════════════════════════════════════
+// NOTIFICATIONS
+// ══════════════════════════════════════════════════════
+async function requestNotifPermission() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission !== 'granted') {
+    await Notification.requestPermission();
+  }
+}
+
+function scheduleNotification() {
+  if (!S.notifEnabled) return;
+  if (!('serviceWorker' in navigator)) return;
+  // Store time; SW will handle actual scheduling
+  localStorage.setItem('notifTime', S.notifTime);
+  // For PWA: use a periodic check via the SW message
+  if (navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({
+      type: 'SCHEDULE_NOTIF',
+      time: S.notifTime
+    });
+  }
+}
+
+function saveNotifTime(val) {
+  S.notifTime = val;
+  save();
+  scheduleNotification();
+  toast('⏰ Reminder set for ' + val + ' IST');
+}
+
+function toggleNotif(el) {
+  el.classList.toggle('on');
+  S.notifEnabled = el.classList.contains('on');
+  save();
+  if (S.notifEnabled) { requestNotifPermission(); scheduleNotification(); }
+  toast(S.notifEnabled ? '🔔 Notifications on' : '🔕 Notifications off');
+}
+
+function toggleSetting(el, key) {
+  el.classList.toggle('on');
+  S[key] = el.classList.contains('on');
+  save();
+}
+
+// ══════════════════════════════════════════════════════
+// SLIDERS
+// ══════════════════════════════════════════════════════
+function updateSlider(el, type, min, max, valId) {
+  const pctVal = ((el.value - min) / (max - min)) * 100;
+  el.style.setProperty('--val', pctVal + '%');
+  document.getElementById(valId).textContent = parseFloat(el.value).toFixed(1);
+  updateMinsCheck();
+}
+
+function updateMinsCheck() {
+  const sleep = parseFloat(document.getElementById('sl-sleep').value);
+  const study = parseFloat(document.getElementById('sl-study').value);
+  const phys  = parseFloat(document.getElementById('sl-phys').value);
+  const m = S.mins;
+  const met = sleep >= m.sleep && study >= m.study && phys >= m.phys;
+
+  let missing = [];
+  if (sleep < m.sleep) missing.push(`sleep +${(m.sleep-sleep).toFixed(1)}h`);
+  if (study < m.study) missing.push(`study +${(m.study-study).toFixed(1)}h`);
+  if (phys  < m.phys)  missing.push(`physical +${(m.phys-phys).toFixed(1)}h`);
+
+  const el = document.getElementById('log-mins-check');
+  if (met) {
+    el.innerHTML = `<div class="mins-status met"><span class="mins-status-icon">✅</span><div class="mins-status-text"><div class="mins-status-title">Minimums met</div><div class="mins-status-detail">System intact. Good.</div></div></div>`;
+  } else {
+    el.innerHTML = `<div class="mins-status not-met"><span class="mins-status-icon">⚠️</span><div class="mins-status-text"><div class="mins-status-title">Below minimum</div><div class="mins-status-detail">Need: ${missing.join(' · ')}</div></div></div>`;
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// DAY TYPE
+// ══════════════════════════════════════════════════════
+function selectDayType(type, el) {
+  document.querySelectorAll('.day-type-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  S.selectedDayType = type;
+}
+
+// ══════════════════════════════════════════════════════
+// LOG SAVE
+// ══════════════════════════════════════════════════════
+function saveLog() {
+  const sleep = parseFloat(document.getElementById('sl-sleep').value);
+  const study = parseFloat(document.getElementById('sl-study').value);
+  const phys  = parseFloat(document.getElementById('sl-phys').value);
+  const win   = document.getElementById('log-win').value.trim();
+  const notes = document.getElementById('log-notes').value.trim();
+  const dayType = S.selectedDayType || 'Full Day';
+
+  const existing = S.logs.findIndex(l => l.date === today());
+  const entry = { date: today(), dayType, sleep, study, phys, win, notes };
+  if (existing >= 0) S.logs[existing] = entry;
+  else S.logs.push(entry);
+
+  save();
+  toast('✅ Log saved!');
+  setTimeout(() => showScreen('home'), 400);
+}
+
+// ══════════════════════════════════════════════════════
+// GOALS
+// ══════════════════════════════════════════════════════
+const CAT_DISPLAY = { physical:'🏃 Physical', study:'📚 Study', personal:'🌱 Personal' };
+const CAT_COLOR   = { physical:'var(--physical)', study:'var(--p2)', personal:'var(--teal)' };
+
+function selectCat(cat, el) {
+  document.querySelectorAll('.cat-btn').forEach(b => { b.classList.remove('sel','physical','study','personal'); });
+  el.classList.add('sel', cat);
+  S.selectedCat = cat;
+}
+
+function setDuration(d, el) {
+  document.querySelectorAll('#modal-new-goal .day-type-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  S.selectedDuration = d;
+}
+function setDuration2(d, el) {
+  document.querySelectorAll('#modal-new-after .day-type-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  S.selectedDuration2 = d;
+}
+
+function openNewGoal(cat) {
+  // Reset
+  document.querySelectorAll('.cat-btn').forEach(b => { b.classList.remove('sel','physical','study','personal'); });
+  document.getElementById('new-goal-title').value = '';
+  document.getElementById('new-goal-metric').value = '';
+  S.selectedCat = cat || null;
+  S.selectedDuration = 21;
+  if (cat) {
+    const btn = document.querySelector(`.cat-btn:nth-child(${cat==='physical'?1:cat==='study'?2:3})`);
+    if (btn) selectCat(cat, btn);
+  }
+  openModal('modal-new-goal');
+}
+
+function saveGoal() {
+  const cat   = S.selectedCat;
+  const title = document.getElementById('new-goal-title').value.trim();
+  const metric= document.getElementById('new-goal-metric').value.trim();
+  if (!cat)   { toast('❌ Pick a category'); return; }
+  if (!title) { toast('❌ Write your goal'); return; }
+
+  // Check if category already has active goal
+  const existing = S.goals.find(g => g.cat === cat && g.status === 'active');
+  if (existing) { toast('❌ Already have an active '+CAT_DISPLAY[cat]+' goal'); return; }
+
+  const start = today();
+  const end   = new Date(Date.now() + S.selectedDuration * 86400000).toISOString().split('T')[0];
+  S.goals.push({
+    id: Date.now().toString(),
+    cat, title, metric,
+    startDate: start,
+    endDate: end,
+    status: 'active',
+    extensions: 0,
+    outcome: null
+  });
+  save();
+  closeModal('modal-new-goal');
+  toast('🎯 Goal locked in!');
+  renderGoals();
+}
+
+function checkExpiredGoals() {
+  const expired = S.goals.filter(g => g.status === 'active' && daysLeft(g.endDate) <= 0);
+  if (expired.length > 0) {
+    S.pendingExpiredGoal = expired[0];
+    showExpiredOverlay(expired[0]);
+  }
+}
+
+function showExpiredOverlay(goal) {
+  document.getElementById('exp-title').textContent = `⏰ ${CAT_DISPLAY[goal.cat]} goal ended`;
+  document.getElementById('exp-sub').textContent = `"${goal.title}"\n\nTime's up. What happened?`;
+  const extUsed = S.goalHistory.filter(h => h.cat === goal.cat && h.outcome === 'extended').length;
+  const extLeft = 2 - extUsed;
+  document.getElementById('ext-remaining-msg').textContent =
+    extLeft > 0 ? `Extensions remaining this year: ${extLeft}/2` : '⚠️ No extensions left for this category this year';
+  
+  const extBtn = document.querySelector('#expired-overlay .btn-gold');
+  extBtn.disabled = extLeft <= 0;
+  extBtn.style.opacity = extLeft <= 0 ? '0.4' : '1';
+
+  document.getElementById('expired-overlay').classList.add('open');
+}
+
+function resolveGoal(resolution) {
+  const goal = S.pendingExpiredGoal;
+  if (!goal) return;
+  S.pendingResolution = resolution;
+
+  document.getElementById('expired-overlay').classList.remove('open');
+
+  if (resolution === 'extend') {
+    // Extend by 14 days
+    const extUsed = S.goalHistory.filter(h => h.cat === goal.cat && h.outcome === 'extended').length;
+    if (extUsed >= 2) { toast('❌ Max extensions reached'); return; }
+    goal.endDate = new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0];
+    goal.extensions = (goal.extensions || 0) + 1;
+    S.goalHistory.push({ ...goal, outcome: 'extended', resolvedDate: today() });
+    save();
+    toast('🔄 Extended by 2 weeks!');
+    renderGoals(); renderHome();
+  } else {
+    // Mark goal done, force new goal selection
+    goal.status = 'completed';
+    goal.outcome = resolution;
+    S.goalHistory.push({ ...goal, resolvedDate: today() });
+    S.goals = S.goals.filter(g => g.id !== goal.id);
+    save();
+
+    // Show new goal sheet
+    document.getElementById('new-after-title').textContent =
+      resolution === 'achieved' ? '🎉 Goal Complete!' : '⏭️ Moving On';
+    document.getElementById('new-after-sub').textContent =
+      `Set your next ${CAT_DISPLAY[goal.cat]} goal`;
+    S.selectedCat = goal.cat;
+    S.selectedDuration2 = 21;
+    document.getElementById('new-after-goal').value = '';
+    document.getElementById('new-after-metric').value = '';
+    openModal('modal-new-after');
+  }
+}
+
+function saveNewAfterGoal() {
+  const title  = document.getElementById('new-after-goal').value.trim();
+  const metric = document.getElementById('new-after-metric').value.trim();
+  const cat    = S.selectedCat || (S.pendingExpiredGoal && S.pendingExpiredGoal.cat);
+  if (!title) { toast('❌ Write your new goal'); return; }
+
+  const start = today();
+  const end   = new Date(Date.now() + S.selectedDuration2 * 86400000).toISOString().split('T')[0];
+  S.goals.push({
+    id: Date.now().toString(),
+    cat, title, metric,
+    startDate: start,
+    endDate: end,
+    status: 'active',
+    extensions: 0,
+    outcome: null
+  });
+  save();
+  closeModal('modal-new-after');
+  S.pendingExpiredGoal = null;
+  toast('🎯 New goal locked in!');
+  renderGoals(); renderHome();
+  checkExpiredGoals(); // check if more expired
+}
+
+// ══════════════════════════════════════════════════════
+// RENDER HOME
+// ══════════════════════════════════════════════════════
+function renderHome() {
+  const h = new Date().getHours();
+  const greet = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('home-greeting').textContent = `${greet}, ${S.name || 'You'} ⚡`;
+  document.getElementById('home-date').textContent = new Date().toLocaleDateString('en-IN', {weekday:'long',day:'numeric',month:'long'});
+
+  // Streak
+  let streak = 0;
+  const sorted = [...S.logs].sort((a,b)=>b.date.localeCompare(a.date));
+  let check = today();
+  for (const log of sorted) {
+    if (log.date === check) { streak++; const d=new Date(check); d.setDate(d.getDate()-1); check=d.toISOString().split('T')[0]; }
+    else break;
+  }
+  document.getElementById('home-streak').textContent = streak;
+
+  // Today minimums
+  const todayLog = S.logs.find(l => l.date === today());
+  const m = S.mins;
+  let minsHtml = '';
+  if (todayLog) {
+    const met = todayLog.sleep>=m.sleep && todayLog.study>=m.study && todayLog.phys>=m.phys;
+    minsHtml = `<div class="mins-status ${met?'met':'not-met'}">
+      <span class="mins-status-icon">${met?'✅':'⚠️'}</span>
+      <div class="mins-status-text">
+        <div class="mins-status-title">${met?'Minimums met':'Below minimum'}</div>
+        <div class="mins-status-detail">Sleep ${todayLog.sleep}h · Study ${todayLog.study}h · Physical ${todayLog.phys}h</div>
+      </div></div>`;
+  } else {
+    minsHtml = `<div class="mins-status not-met"><span class="mins-status-icon">📝</span><div class="mins-status-text"><div class="mins-status-title">Not logged yet</div><div class="mins-status-detail">Tap + to log your day</div></div></div>`;
+  }
+  document.getElementById('home-mins-status').innerHTML = minsHtml;
+
+  // Active goals
+  let goalsHtml = '';
+  if (S.goals.length === 0) {
+    goalsHtml = `<div class="card" style="text-align:center;padding:24px;color:var(--muted)">
+      No active goals yet<br/><button class="btn btn-primary" style="margin-top:16px;max-width:200px" onclick="openNewGoal()">Set First Goal</button></div>`;
+  } else {
+    S.goals.forEach(g => {
+      const dl = daysLeft(g.endDate);
+      const total = Math.ceil((new Date(g.endDate)-new Date(g.startDate))/86400000);
+      const elapsed = total - Math.max(0,dl);
+      const prog = pct(elapsed, total);
+      const urgentClass = dl<=3?'urgent':'';
+      const expiryText = dl<=0?'EXPIRED':dl<=1?'⚠️ LAST DAY':`${dl}d left`;
+      goalsHtml += `<div class="goal-card ${g.cat}">
+        <div class="goal-card-top">
+          <span class="goal-cat-badge">${CAT_DISPLAY[g.cat]}</span>
+          <span class="goal-days-left ${urgentClass}">${expiryText}</span>
+        </div>
+        <div class="goal-title">${g.title}</div>
+        ${g.metric?`<div class="goal-metric">Target: ${g.metric}</div>`:''}
+        <div class="goal-progress"><div class="goal-progress-fill" style="width:${prog}%"></div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+          <div class="ext-pips">
+            <div class="ext-pip ${g.extensions>=1?'used':'available'}"></div>
+            <div class="ext-pip ${g.extensions>=2?'used':'available'}"></div>
+          </div>
+          <span style="font-size:10px;color:var(--muted);font-family:var(--font-mono)">${prog}% elapsed</span>
+        </div>
+      </div>`;
+    });
+  }
+  document.getElementById('home-goals-list').innerHTML = goalsHtml;
+  checkExpiredGoals();
+}
+
+// ══════════════════════════════════════════════════════
+// RENDER GOALS
+// ══════════════════════════════════════════════════════
+function renderGoals() {
+  let html = '';
+  const cats = ['physical','study','personal'];
+
+  cats.forEach(cat => {
+    const active = S.goals.find(g => g.cat===cat && g.status==='active');
+    const extUsed = S.goalHistory.filter(h=>h.cat===cat && h.outcome==='extended').length;
+    const extLeft = 2 - extUsed;
+
+    html += `<div class="goal-card ${cat}" style="margin-bottom:12px">
+      <div class="goal-card-top">
+        <span class="goal-cat-badge">${CAT_DISPLAY[cat]}</span>
+        <span style="font-size:10px;color:var(--muted);font-family:var(--font-mono)">Ext: ${extLeft}/2 left</span>
+      </div>`;
+
+    if (active) {
+      const dl = daysLeft(active.endDate);
+      const total = Math.ceil((new Date(active.endDate)-new Date(active.startDate))/86400000);
+      const elapsed = total - Math.max(0,dl);
+      const prog = pct(elapsed, total);
+      html += `<div class="goal-title">${active.title}</div>
+        ${active.metric?`<div class="goal-metric" style="margin-bottom:8px">📍 ${active.metric}</div>`:''}
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px">
+          ${dateStr(active.startDate)} → ${dateStr(active.endDate)} · ${Math.max(0,dl)}d remaining
+        </div>
+        <div class="goal-progress"><div class="goal-progress-fill" style="width:${prog}%"></div></div>`;
+    } else {
+      html += `<div style="color:var(--muted);font-size:13px;margin-bottom:12px">No active goal</div>
+        <button class="btn btn-ghost" style="padding:10px" onclick="openNewGoal('${cat}')">＋ Set Goal</button>`;
+    }
+    html += `</div>`;
+  });
+
+  document.getElementById('goals-active-list').innerHTML = html;
+
+  // History
+  let histHtml = '';
+  if (S.goalHistory.length === 0) {
+    histHtml = `<div style="color:var(--muted);font-size:13px;padding:16px 0">No completed goals yet</div>`;
+  } else {
+    [...S.goalHistory].reverse().forEach(g => {
+      const outcomeMap = { achieved:'✅ Achieved', extended:'🔄 Extended', accept:'⏭️ Moved On' };
+      const colorMap   = { achieved:'var(--teal)', extended:'var(--gold)', accept:'var(--muted)' };
+      histHtml += `<div class="history-item">
+        <div class="history-dot" style="background:${CAT_COLOR[g.cat]}"></div>
+        <div class="history-info">
+          <div class="history-name">${g.title}</div>
+          <div class="history-meta">${CAT_DISPLAY[g.cat]} · ${dateStr(g.startDate)}–${dateStr(g.resolvedDate||g.endDate)}</div>
+        </div>
+        <span class="history-outcome" style="background:rgba(255,255,255,0.05);color:${colorMap[g.outcome]}">${outcomeMap[g.outcome]||g.outcome}</span>
+      </div>`;
+    });
+  }
+  document.getElementById('goals-history-list').innerHTML = histHtml;
+}
+
+// ══════════════════════════════════════════════════════
+// RENDER LOG
+// ══════════════════════════════════════════════════════
+function renderLog() {
+  document.getElementById('log-date-label').textContent =
+    new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'short'});
+
+  const todayLog = S.logs.find(l => l.date === today());
+  if (todayLog) {
+    document.getElementById('sl-sleep').value = todayLog.sleep;
+    document.getElementById('sl-study').value = todayLog.study;
+    document.getElementById('sl-phys').value  = todayLog.phys;
+    document.getElementById('val-sleep').textContent = todayLog.sleep.toFixed(1);
+    document.getElementById('val-study').textContent = todayLog.study.toFixed(1);
+    document.getElementById('val-phys').textContent  = todayLog.phys.toFixed(1);
+    document.getElementById('log-win').value   = todayLog.win || '';
+    document.getElementById('log-notes').value = todayLog.notes || '';
+    S.selectedDayType = todayLog.dayType;
+    document.querySelectorAll('.day-type-btn').forEach(b => b.classList.remove('selected'));
+    const map = {'Full Day':'.full','Flex Day':'.flex','Rest Day':'.rest'};
+    const btn = document.querySelector(map[todayLog.dayType]);
+    if (btn) btn.classList.add('selected');
+  }
+  // Update slider backgrounds
+  ['sleep','study','phys'].forEach(type => {
+    const sl = document.getElementById('sl-'+type);
+    const min = parseFloat(sl.min), max = parseFloat(sl.max);
+    const pctVal = ((parseFloat(sl.value)-min)/(max-min))*100;
+    sl.style.setProperty('--val', pctVal+'%');
+  });
+  updateMinsCheck();
+}
+
+// ══════════════════════════════════════════════════════
+// RENDER STATS
+// ══════════════════════════════════════════════════════
+function renderStats() {
+  const last30 = S.logs.filter(l => {
+    const d = new Date(l.date);
+    return (Date.now()-d.getTime()) < 30*86400000;
+  });
+
+  const avg = (arr, key) => arr.length ? (arr.reduce((s,l)=>s+l[key],0)/arr.length).toFixed(1) : '—';
+  const cnt = (arr, key, val) => arr.filter(l=>l[key]>=val).length;
+
+  const totalLogged  = S.logs.length;
+  const flexDays     = S.logs.filter(l=>l.dayType==='Flex Day').length;
+  const minsMetDays  = S.logs.filter(l=>l.sleep>=S.mins.sleep&&l.study>=S.mins.study&&l.phys>=S.mins.phys).length;
+
+  document.getElementById('stats-boxes').innerHTML = `
+    <div class="stat-box"><span class="stat-num" style="color:var(--teal)">${totalLogged}</span><span class="stat-label">Days logged</span></div>
+    <div class="stat-box"><span class="stat-num" style="color:var(--gold)">${flexDays}</span><span class="stat-label">Flex days</span></div>
+    <div class="stat-box"><span class="stat-num" style="color:var(--p2)">${minsMetDays}</span><span class="stat-label">Mins met</span></div>`;
+
+  document.getElementById('stats-avgs').innerHTML = `
+    <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+      <span style="color:var(--muted)">😴 Avg Sleep</span>
+      <span style="font-family:var(--font-mono);color:var(--teal)">${avg(last30,'sleep')}h</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+      <span style="color:var(--muted)">📚 Avg Study</span>
+      <span style="font-family:var(--font-mono);color:var(--p2)">${avg(last30,'study')}h</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:10px 0">
+      <span style="color:var(--muted)">🏃 Avg Physical</span>
+      <span style="font-family:var(--font-mono);color:var(--physical)">${avg(last30,'phys')}h</span>
+    </div>`;
+
+  // Last 7 days mini chart
+  const last7 = [];
+  for (let i=6;i>=0;i--) {
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const ds = d.toISOString().split('T')[0];
+    const log = S.logs.find(l=>l.date===ds);
+    last7.push({ label: d.toLocaleDateString('en-IN',{weekday:'short'}), log });
+  }
+
+  let weekHtml = `<div style="display:flex;gap:6px;align-items:flex-end;height:80px;margin-bottom:8px">`;
+  last7.forEach(({label,log}) => {
+    const h = log ? Math.max(8, pct(log.study, 4)*0.8) : 4;
+    const col = log ? (log.study>=S.mins.study?'var(--p2)':'var(--coral)') : 'var(--bg3)';
+    weekHtml += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+      <div style="width:100%;background:${col};border-radius:4px 4px 0 0;height:${h}px;transition:height 0.3s"></div>
+      <span style="font-size:9px;color:var(--muted);font-family:var(--font-mono)">${label}</span>
+    </div>`;
+  });
+  weekHtml += `</div><div style="font-size:10px;color:var(--muted);text-align:center;font-family:var(--font-mono)">STUDY HOURS · LAST 7 DAYS</div>`;
+  document.getElementById('stats-week').innerHTML = weekHtml;
+}
+
+// ══════════════════════════════════════════════════════
+// RENDER SETTINGS
+// ══════════════════════════════════════════════════════
+function renderSettings() {
+  document.getElementById('notif-time').value = S.notifTime || '21:30';
+  document.getElementById('toggle-notif').className = 'toggle '+(S.notifEnabled?'on':'');
+  document.getElementById('toggle-expiry').className = 'toggle '+(S.notifExpiry!==false?'on':'');
+  const ms = document.getElementById('min-sleep');
+  const mst= document.getElementById('min-study');
+  const mp = document.getElementById('min-phys');
+  if (ms) ms.value = S.mins.sleep;
+  if (mst) mst.value = S.mins.study;
+  if (mp) mp.value = S.mins.phys;
+}
+
+function saveMin(key, val) {
+  S.mins[key] = parseFloat(val);
+  save();
+  toast('✅ Minimum updated');
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(S, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'optimize_backup.json';
+  a.click();
+}
+
+function confirmReset() {
+  if (confirm('Reset ALL data? This cannot be undone.')) {
+    localStorage.removeItem('optimize_v1');
+    location.reload();
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  if (S.name) {
+    document.getElementById('onboarding').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    renderHome();
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').then(reg => {
+        console.log('SW registered');
+        scheduleNotification();
+      });
+    }
+    checkExpiredGoals();
+  } else {
+    // Show onboarding, register SW silently
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+  }
+});
+
+// Check expired goals whenever app comes to foreground
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && S.name) checkExpiredGoals();
+});
+</script>
+</body>
+</html>
