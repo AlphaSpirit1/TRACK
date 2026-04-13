@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="theme-color" content="#0a0a0f"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="OPTIMIZE"/>
+<title>OPTIMIZE</title>
+<link rel="manifest" href="manifest.json"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0a0a0f;--bg1:#11111a;--bg2:#18182a;--bg3:#1f1f35;
+  --border:#ffffff0f;--border2:#ffffff1a;
+  --p:#7c6aff;--p2:#a08bff;--teal:#00e5b0;--coral:#ff5f6d;--gold:#ffd166;
+  --white:#f0f0f8;--muted:#6b6b8a;--muted2:#3a3a5a;
+  --fh:'Syne',sans-serif;--fm:'Space Mono',monospace;--fb:'DM Sans',sans-serif;
+  --r:16px;--r2:12px;--safe:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;height:100%}
+body{font-family:var(--fb);background:var(--bg);color:var(--white);min-height:100dvh;overflow:hidden;-webkit-tap-highlight-color:transparent}
+
+.page{position:fixed;inset:0;display:none;flex-direction:column;background:var(--bg);z-index:10;overflow:hidden}
+.page.active{display:flex}
+.page.fade-in{animation:fadeUp .25s ease}
+.page.slide-in{animation:slideIn .25s cubic-bezier(.32,.72,0,1)}
+.page.slide-back{animation:slideBack .25s cubic-bezier(.32,.72,0,1)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+@keyframes slideBack{from{transform:translateX(-30%)}to{transform:translateX(0)}}
+
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 16px 120px}
+.scroll::-webkit-scrollbar{display:none}
+
+.hdr{padding:52px 20px 14px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.hdr-back{width:36px;height:36px;border-radius:50%;background:var(--bg2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;flex-shrink:0}
+.hdr-back:active{background:var(--bg3)}
+.hdr-info{flex:1}
+.hdr-title{font-family:var(--fh);font-size:22px;font-weight:800;letter-spacing:-.5px}
+.hdr-sub{font-family:var(--fm);font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+.hdr-act{width:36px;height:36px;border-radius:50%;background:var(--bg2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;flex-shrink:0}
+.hdr-act:active{background:var(--bg3)}
+
+.bnav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,15,.92);backdrop-filter:blur(20px);border-top:1px solid var(--border);padding:10px 0 calc(10px + var(--safe));display:flex;z-index:100}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:4px;opacity:.38;transition:opacity .2s}
+.ni.on{opacity:1}
+.ni .ico{font-size:22px;line-height:1}
+.ni .lbl{font-family:var(--fm);font-size:9px;letter-spacing:.5px;text-transform:uppercase}
+.ni.on .lbl{color:var(--p2)}
+
+.card{background:rgba(22,22,34,.8);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.sec{font-family:var(--fm);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:20px 0 10px}
+
+.gc{border-radius:var(--r);padding:16px;margin-bottom:10px;border:1px solid var(--border);cursor:pointer;transition:transform .15s,opacity .15s;position:relative;overflow:hidden}
+.gc:active{transform:scale(.98);opacity:.9}
+.gc.physical{background:rgba(255,95,109,.07);border-color:rgba(255,95,109,.22)}
+.gc.study{background:rgba(124,106,255,.07);border-color:rgba(124,106,255,.22)}
+.gc.personal{background:rgba(0,229,176,.07);border-color:rgba(0,229,176,.22)}
+.gc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.badge{font-family:var(--fm);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;padding:3px 9px;border-radius:20px;font-weight:700}
+.physical .badge{background:rgba(255,95,109,.15);color:var(--coral)}
+.study .badge{background:rgba(124,106,255,.15);color:var(--p2)}
+.personal .badge{background:rgba(0,229,176,.15);color:var(--teal)}
+.gc-title{font-family:var(--fh);font-size:16px;font-weight:700;margin-bottom:4px;line-height:1.3}
+.gc-meta{font-size:12px;color:var(--muted)}
+.prog{margin-top:12px;height:3px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;border-radius:4px;transition:width .6s ease}
+.physical .prog-fill{background:var(--coral)}
+.study .prog-fill{background:var(--p2)}
+.personal .prog-fill{background:var(--teal)}
+.dlc{font-family:var(--fm);font-size:10px}
+.dlc.ok{color:var(--muted)}.dlc.warn{color:var(--gold)}.dlc.danger{color:var(--coral);font-weight:700}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;border-radius:var(--r);border:none;font-family:var(--fh);font-size:14px;font-weight:700;letter-spacing:.5px;cursor:pointer;transition:all .2s}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--p);color:#fff}
+.btn-t{background:var(--teal);color:#000}
+.btn-g{background:var(--bg2);color:var(--white);border:1px solid var(--border2)}
+.btn-d{background:rgba(255,95,109,.12);color:var(--coral);border:1px solid rgba(255,95,109,.25)}
+.btn-gold{background:rgba(255,209,102,.12);color:var(--gold);border:1px solid rgba(255,209,102,.25)}
+.btn-sm{padding:10px 14px;font-size:13px;border-radius:var(--r2)}
+
+.sboxes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.sbox{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 10px;text-align:center}
+.sbox-n{font-family:var(--fm);font-size:22px;font-weight:700;display:block}
+.sbox-l{font-size:10px;color:var(--muted);margin-top:4px;display:block}
+
+.dtr{display:flex;gap:8px;margin-bottom:12px}
+.dtb{flex:1;padding:11px 4px;border-radius:var(--r2);border:1px solid var(--border);background:var(--bg2);color:var(--muted);font-family:var(--fm);font-size:10px;text-align:center;cursor:pointer;transition:all .2s}
+.dtb.sel.full{background:rgba(0,229,176,.1);border-color:var(--teal);color:var(--teal)}
+.dtb.sel.flex{background:rgba(255,209,102,.1);border-color:var(--gold);color:var(--gold)}
+.dtb.sel.rest{background:rgba(255,95,109,.1);border-color:var(--coral);color:var(--coral)}
+
+.si{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px;margin-bottom:10px}
+.si-lbl{font-family:var(--fm);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.si-val{font-family:var(--fh);font-size:30px;font-weight:800;line-height:1;margin:6px 0}
+.sl{-webkit-appearance:none;width:100%;height:4px;border-radius:4px;outline:none;cursor:pointer}
+.sl.sleep{background:linear-gradient(to right,var(--teal) 0%,var(--teal) var(--v,50%),var(--bg3) var(--v,50%))}
+.sl.study{background:linear-gradient(to right,var(--p2) 0%,var(--p2) var(--v,50%),var(--bg3) var(--v,50%))}
+.sl.phys{background:linear-gradient(to right,var(--coral) 0%,var(--coral) var(--v,50%),var(--bg3) var(--v,50%))}
+.sl::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+
+.ms{border-radius:var(--r2);padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.ms.ok{background:rgba(0,229,176,.07);border:1px solid rgba(0,229,176,.18)}
+.ms.bad{background:rgba(255,95,109,.07);border:1px solid rgba(255,95,109,.18)}
+.ms-ico{font-size:20px;flex-shrink:0}
+.ms-t{font-weight:600;font-size:13px}
+.ms-d{font-size:11px;color:var(--muted);margin-top:2px}
+
+.le{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);gap:12px}
+.le:last-child{border-bottom:none}
+.le-ico{font-size:20px;flex-shrink:0}
+.le-info{flex:1}
+.le-name{font-size:13px;font-weight:600}
+.le-meta{font-size:11px;color:var(--muted);margin-top:2px}
+
+.fg{margin-bottom:16px}
+.fl{font-family:var(--fm);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px}
+.fi{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);color:var(--white);font-family:var(--fb);font-size:15px;padding:12px 14px;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none}
+.fi:focus{border-color:var(--p)}
+.fi::placeholder{color:var(--muted2)}
+textarea.fi{resize:none;min-height:72px}
+select.fi{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b8a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+input[type=time].fi{color:var(--white);background:var(--bg2)}
+input[type=time].fi::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.5;cursor:pointer}
+
+.dur-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:4px}
+.dp{padding:10px 4px;border-radius:var(--r2);border:1px solid var(--border);background:var(--bg2);color:var(--muted);font-family:var(--fm);font-size:10px;text-align:center;cursor:pointer;transition:all .2s}
+.dp.sel{background:rgba(124,106,255,.15);border-color:var(--p2);color:var(--p2)}
+
+.cat-row{display:flex;gap:8px;margin-bottom:16px}
+.cat-btn{flex:1;padding:11px 4px;border-radius:var(--r2);border:1px solid var(--border);background:var(--bg2);color:var(--muted);font-family:var(--fm);font-size:10px;text-align:center;cursor:pointer;transition:all .2s}
+.cat-btn.sel.physical{background:rgba(255,95,109,.15);border-color:var(--coral);color:var(--coral)}
+.cat-btn.sel.study{background:rgba(124,106,255,.15);border-color:var(--p2);color:var(--p2)}
+.cat-btn.sel.personal{background:rgba(0,229,176,.15);border-color:var(--teal);color:var(--teal)}
+
+.tog{position:relative;width:46px;height:26px;background:var(--bg3);border-radius:13px;cursor:pointer;transition:background .2s;border:1px solid var(--border2);flex-shrink:0}
+.tog.on{background:var(--p)}
+.tog::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s}
+.tog.on::after{transform:translateX(20px)}
+
+.sr{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)}
+.sr:last-child{border-bottom:none}
+.sr-n{font-size:14px;font-weight:500}
+.sr-d{font-size:11px;color:var(--muted);margin-top:3px}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:none;align-items:flex-end}
+.overlay.open{display:flex;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.sheet{background:var(--bg1);border-radius:24px 24px 0 0;padding:16px 20px calc(24px + var(--safe));width:100%;max-height:92dvh;overflow-y:auto}
+.sheet::-webkit-scrollbar{display:none}
+.handle{width:36px;height:4px;background:var(--muted2);border-radius:2px;margin:0 auto 20px}
+.sh-title{font-family:var(--fh);font-size:20px;font-weight:800;margin-bottom:4px}
+.sh-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+
+.exp-ov{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:300;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
+.exp-ov.open{display:flex}
+.exp-ico{font-size:64px;margin-bottom:16px;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.exp-title{font-family:var(--fh);font-size:26px;font-weight:800;margin-bottom:8px;color:var(--gold)}
+.exp-sub{font-size:14px;color:var(--muted);margin-bottom:32px;line-height:1.7;white-space:pre-line}
+
+.toast{position:fixed;top:64px;left:50%;transform:translateX(-50%) translateY(-16px);background:var(--bg3);border:1px solid var(--border2);border-radius:30px;padding:10px 20px;font-size:13px;font-weight:500;z-index:500;opacity:0;transition:all .3s;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+#ob{position:fixed;inset:0;background:var(--bg);z-index:600;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center}
+
+.gd-prog-wrap{height:6px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;margin-bottom:8px}
+.gd-prog-fill{height:100%;border-radius:4px;transition:width .6s ease}
+.gd-date-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:12px}
+.gd-date-lbl{font-family:var(--fm);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.ext-pips{display:flex;gap:5px}
+.ext-pip{width:24px;height:6px;border-radius:3px;background:rgba(255,255,255,.08)}
+.ext-pip.avail{background:var(--gold)}
+.ext-pip.used{background:rgba(255,209,102,.3)}
+
+.hi{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);gap:12px}
+.hi:last-child{border-bottom:none}
+.hi-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.hi-info{flex:1}
+.hi-name{font-size:13px;font-weight:500}
+.hi-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.hi-out{font-family:var(--fm);font-size:10px;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,.05)}
+</style>
+</head>
+<body>
+
+<div id="ob">
+  <div style="font-size:72px;margin-bottom:24px">⚡</div>
+  <div style="font-family:var(--fh);font-size:32px;font-weight:800;margin-bottom:12px">OPTIMIZE</div>
+  <div style="font-size:15px;color:var(--muted);line-height:1.6;margin-bottom:40px">Your personal growth system.<br/>Structured. Flexible. Unbreakable.</div>
+  <button class="btn btn-p" style="max-width:280px" onclick="startSetup()">Set Up System →</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<nav class="bnav" id="bnav" style="display:none">
+  <div class="ni on" onclick="nav('home')" id="ni-home"><span class="ico">⚡</span><span class="lbl">Today</span></div>
+  <div class="ni" onclick="nav('goals')" id="ni-goals"><span class="ico">🎯</span><span class="lbl">Goals</span></div>
+  <div class="ni" onclick="nav('log')" id="ni-log"><span class="ico">📝</span><span class="lbl">Log</span></div>
+  <div class="ni" onclick="nav('stats')" id="ni-stats"><span class="ico">📈</span><span class="lbl">Stats</span></div>
+  <div class="ni" onclick="nav('cfg')" id="ni-cfg"><span class="ico">⚙️</span><span class="lbl">Settings</span></div>
+</nav>
+
+<!-- HOME -->
+<div class="page active fade-in" id="pg-home">
+  <div class="hdr">
+    <div class="hdr-info">
+      <div class="hdr-title" id="h-greet">Good morning ⚡</div>
+      <div class="hdr-sub" id="h-date"></div>
+    </div>
+    <div class="hdr-act" onclick="openNewLog()">＋</div>
+  </div>
+  <div class="scroll">
+    <div class="card" style="text-align:center;padding:20px 16px">
+      <div style="font-family:var(--fm);font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:8px">CURRENT STREAK</div>
+      <span style="font-family:var(--fm);font-size:56px;font-weight:700;color:var(--gold);line-height:1;display:block" id="h-streak">0</span>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px">days logged 🔥</div>
+    </div>
+    <div class="sec">TODAY'S MINIMUMS</div>
+    <div id="h-mins"></div>
+    <div class="sec">ACTIVE GOALS</div>
+    <div id="h-goals"></div>
+  </div>
+</div>
+
+<!-- GOALS -->
+<div class="page" id="pg-goals">
+  <div class="hdr"><div class="hdr-info"><div class="hdr-title">Goals</div><div class="hdr-sub">Active Cycles</div></div></div>
+  <div class="scroll">
+    <div id="g-active"></div>
+    <div class="sec">HISTORY</div>
+    <div class="card" id="g-hist"></div>
+  </div>
+</div>
+
+<!-- GOAL DETAIL -->
+<div class="page" id="pg-goal-detail">
+  <div class="hdr">
+    <div class="hdr-back" onclick="goBack()">←</div>
+    <div class="hdr-info">
+      <div class="hdr-title" id="gd-hdr-title">Goal</div>
+      <div class="hdr-sub" id="gd-hdr-sub">— days left</div>
+    </div>
+    <div class="hdr-act" onclick="openGoalMenu()">⋯</div>
+  </div>
+  <div class="scroll">
+    <div id="gd-hero" style="padding:0 0 4px"></div>
+    <div class="sec">LINKED LOG ENTRIES</div>
+    <div class="card" id="gd-logs"></div>
+    <div class="sec">QUICK ACTIONS</div>
+    <div id="gd-actions"></div>
+  </div>
+</div>
+
+<!-- LOG -->
+<div class="page" id="pg-log">
+  <div class="hdr">
+    <div class="hdr-info"><div class="hdr-title">Log</div><div class="hdr-sub" id="l-date">Today</div></div>
+    <div class="hdr-act" onclick="openNewLog()">＋</div>
+  </div>
+  <div class="scroll">
+    <div class="sec">TODAY'S ENTRIES</div>
+    <div class="card" id="l-today"></div>
+    <div class="sec">TOTALS & STATUS</div>
+    <div id="l-status"></div>
+    <div class="sec">QUICK ADD</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <button class="btn btn-g btn-sm" onclick="openNewLog('sleep')">😴 Sleep</button>
+      <button class="btn btn-g btn-sm" onclick="openNewLog('study')">📚 Study</button>
+      <button class="btn btn-g btn-sm" onclick="openNewLog('physical')">🏃 Physical</button>
+      <button class="btn btn-g btn-sm" onclick="openNewLog('daily')">📋 Day Type</button>
+      <button class="btn btn-g btn-sm" style="grid-column:span 2" onclick="openNewLog('win')">🏆 Log a Win / Note</button>
+    </div>
+    <div class="sec">PAST ENTRIES</div>
+    <div class="card" id="l-past"></div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="page" id="pg-stats">
+  <div class="hdr"><div class="hdr-info"><div class="hdr-title">Stats</div><div class="hdr-sub">30-day overview</div></div></div>
+  <div class="scroll">
+    <div class="sboxes" id="st-boxes"></div>
+    <div class="sec">30-DAY AVERAGES</div>
+    <div class="card" id="st-avgs"></div>
+    <div class="sec">LAST 7 DAYS — STUDY HRS</div>
+    <div class="card" id="st-week"></div>
+    <div class="sec">GOAL OUTCOMES</div>
+    <div class="card" id="st-outs"></div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="page" id="pg-cfg">
+  <div class="hdr"><div class="hdr-info"><div class="hdr-title">Settings</div><div class="hdr-sub">System Config</div></div></div>
+  <div class="scroll">
+    <div class="sec">NOTIFICATIONS</div>
+    <div class="card">
+      <div class="sr">
+        <div><div class="sr-n">Daily Check-in Reminder</div><div class="sr-d">Tap + Allow when prompted</div></div>
+        <div class="tog on" id="tog-notif" onclick="togNotif(this)"></div>
+      </div>
+      <div class="sr">
+        <div><div class="sr-n">Reminder Time (IST)</div><div class="sr-d">Tap to change time</div></div>
+        <input type="time" class="fi" id="notif-time" value="21:30" style="width:120px;padding:8px 12px;font-size:14px" onchange="saveNotifTime(this.value)"/>
+      </div>
+      <div class="sr">
+        <div><div class="sr-n">Goal Expiry Alerts</div><div class="sr-d">1 day before goal ends</div></div>
+        <div class="tog on" id="tog-exp" onclick="togSet(this,'notifExpiry')"></div>
+      </div>
+    </div>
+    <div class="sec">MINIMUMS</div>
+    <div class="card">
+      <div class="sr">
+        <div><div class="sr-n">Sleep</div></div>
+        <select class="fi" id="m-sleep" style="width:90px;padding:8px 10px" onchange="saveMin('sleep',this.value)">
+          <option value="5">5h</option><option value="6">6h</option><option value="7">7h</option><option value="8">8h</option>
+        </select>
+      </div>
+      <div class="sr">
+        <div><div class="sr-n">Study</div></div>
+        <select class="fi" id="m-study" style="width:90px;padding:8px 10px" onchange="saveMin('study',this.value)">
+          <option value="0.5">0.5h</option><option value="1">1h</option><option value="1.5">1.5h</option><option value="2">2h</option>
+        </select>
+      </div>
+      <div class="sr">
+        <div><div class="sr-n">Physical</div></div>
+        <select class="fi" id="m-phys" style="width:90px;padding:8px 10px" onchange="saveMin('phys',this.value)">
+          <option value="0.5">30m</option><option value="1">1h</option><option value="1.5">1.5h</option>
+        </select>
+      </div>
+    </div>
+    <div class="sec">PROFILE</div>
+    <div class="card">
+      <div class="sr">
+        <div><div class="sr-n">Your name</div></div>
+        <input class="fi" id="cfg-name" style="width:140px;padding:8px 10px;font-size:14px" placeholder="Name" onblur="saveName(this.value)"/>
+      </div>
+    </div>
+    <div class="sec">DATA</div>
+    <div class="card">
+      <button class="btn btn-g" onclick="exportData()" style="margin-bottom:10px">📤 Export Data (JSON)</button>
+      <button class="btn btn-d" onclick="confirmReset()">🗑️ Reset All Data</button>
+    </div>
+    <div style="text-align:center;padding:20px 0;font-family:var(--fm);font-size:10px;color:var(--muted2)">OPTIMIZE v2.0</div>
+  </div>
+</div>
+
+<!-- MODAL: New Log -->
+<div class="overlay" id="ov-log">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="sh-title">Log Entry</div>
+    <div class="sh-sub">What are you tracking right now?</div>
+    <div class="fg">
+      <label class="fl">Type</label>
+      <select class="fi" id="nl-type" onchange="onTypeChange(this.value)">
+        <option value="sleep">😴 Sleep</option>
+        <option value="study">📚 Study Session</option>
+        <option value="physical">🏃 Physical Session</option>
+        <option value="daily">📋 Day Type</option>
+        <option value="win">🏆 Win / Note</option>
+      </select>
+    </div>
+    <div id="nl-sleep-f">
+      <div class="fg"><label class="fl">Hours slept</label>
+        <div class="si"><div class="si-val" id="nlv-sleep">7.0h</div>
+          <input type="range" class="sl sleep" min="4" max="12" step=".5" value="7" id="nls-sleep" oninput="updSl(this,'sleep',4,12,'nlv-sleep')"/></div></div>
+      <div class="fg"><label class="fl">Quality</label>
+        <select class="fi" id="nl-sq"><option value="">— select —</option><option value="great">😌 Great</option><option value="ok">😐 OK</option><option value="poor">😩 Poor</option></select></div>
+    </div>
+    <div id="nl-study-f" style="display:none">
+      <div class="fg"><label class="fl">Hours studied</label>
+        <div class="si"><div class="si-val" id="nlv-study">1.5h</div>
+          <input type="range" class="sl study" min="0" max="4" step=".5" value="1.5" id="nls-study" oninput="updSl(this,'study',0,4,'nlv-study')"/></div></div>
+      <div class="fg"><label class="fl">What did you study?</label>
+        <input class="fi" id="nl-swhat" placeholder="e.g. DSA, algorithms…"/></div>
+      <div class="fg"><label class="fl">Link to goal (optional)</label>
+        <select class="fi" id="nl-sgoal"></select></div>
+    </div>
+    <div id="nl-phys-f" style="display:none">
+      <div class="fg"><label class="fl">Hours of activity</label>
+        <div class="si"><div class="si-val" id="nlv-phys">1.0h</div>
+          <input type="range" class="sl phys" min="0" max="4" step=".5" value="1" id="nls-phys" oninput="updSl(this,'phys',0,4,'nlv-phys')"/></div></div>
+      <div class="fg"><label class="fl">Activity</label>
+        <input class="fi" id="nl-pwhat" placeholder="e.g. Gym, Frisbee, Run…"/></div>
+      <div class="fg"><label class="fl">Intensity</label>
+        <select class="fi" id="nl-pint"><option value="light">🟢 Light</option><option value="moderate">🟡 Moderate</option><option value="high" selected>🔴 High</option></select></div>
+      <div class="fg"><label class="fl">Link to goal (optional)</label>
+        <select class="fi" id="nl-pgoal"></select></div>
+    </div>
+    <div id="nl-daily-f" style="display:none">
+      <div class="fg"><label class="fl">Day Type</label>
+        <div class="dtr">
+          <div class="dtb full" onclick="selDT('Full Day',this)">🟢 Full</div>
+          <div class="dtb flex" onclick="selDT('Flex Day',this)">🟡 Flex</div>
+          <div class="dtb rest" onclick="selDT('Rest Day',this)">🔴 Rest</div>
+        </div></div>
+    </div>
+    <div id="nl-win-f" style="display:none">
+      <div class="fg"><label class="fl">Your win or note</label>
+        <textarea class="fi" id="nl-wtext" placeholder="What happened? What did you learn?"></textarea></div>
+    </div>
+    <div class="fg">
+      <label class="fl">Notes (optional)</label>
+      <textarea class="fi" id="nl-notes" placeholder="Any extra thoughts…" style="min-height:56px"></textarea>
+    </div>
+    <div id="nl-mcheck" style="margin-bottom:12px"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-g" style="flex:1" onclick="closeOv('ov-log')">Cancel</button>
+      <button class="btn btn-t" style="flex:2" onclick="saveEntry()">✓ Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: New Goal -->
+<div class="overlay" id="ov-goal">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="sh-title" id="ng-title">New Goal</div>
+    <div class="sh-sub">Specific · Measurable · Time-bound</div>
+    <div class="fg"><label class="fl">Category</label>
+      <div class="cat-row">
+        <div class="cat-btn" onclick="selCat('physical',this)">🏃 Physical</div>
+        <div class="cat-btn" onclick="selCat('study',this)">📚 Study</div>
+        <div class="cat-btn" onclick="selCat('personal',this)">🌱 Personal</div>
+      </div></div>
+    <div class="fg"><label class="fl">Goal Statement</label>
+      <input class="fi" id="ng-goal" placeholder="e.g. Hit 8/10 accurate throws"/></div>
+    <div class="fg"><label class="fl">Success Metric</label>
+      <input class="fi" id="ng-metric" placeholder="e.g. 8 out of 10 consistently"/></div>
+    <div class="fg"><label class="fl">Duration</label>
+      <div class="dur-grid" id="ng-dg">
+        <div class="dp" onclick="selDur(7,this,'ng-dg')">7d</div>
+        <div class="dp" onclick="selDur(10,this,'ng-dg')">10d</div>
+        <div class="dp" onclick="selDur(14,this,'ng-dg')">2 wk</div>
+        <div class="dp" onclick="selDur(21,this,'ng-dg')">3 wk</div>
+        <div class="dp" onclick="selDur(28,this,'ng-dg')">4 wk</div>
+        <div class="dp" onclick="selDur(35,this,'ng-dg')">5 wk</div>
+        <div class="dp" onclick="selDur(42,this,'ng-dg')">6 wk</div>
+      </div></div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-g" style="flex:1" onclick="closeOv('ov-goal')">Cancel</button>
+      <button class="btn btn-p" style="flex:2" onclick="saveGoal()">Lock It In →</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPIRED OVERLAY -->
+<div class="exp-ov" id="ov-expired">
+  <div class="exp-ico">⏰</div>
+  <div class="exp-title" id="exp-title">Time's Up!</div>
+  <div class="exp-sub" id="exp-sub">Goal ended.\nWhat's your call?</div>
+  <div style="display:flex;flex-direction:column;gap:10px;width:100%">
+    <button class="btn btn-t" onclick="resolveGoal('achieved')">✅ Achieved — Set New Goal</button>
+    <button class="btn btn-gold" id="ext-btn" onclick="resolveGoal('extend')">🔄 Use Extension (+2 weeks)</button>
+    <button class="btn btn-g" onclick="resolveGoal('accept')">⏭️ Accept & Move On</button>
+  </div>
+  <div id="ext-msg" style="margin-top:16px;font-size:12px;color:var(--muted)"></div>
+</div>
+
+<!-- MODAL: Next Goal (after resolution) -->
+<div class="overlay" id="ov-next">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="sh-title" id="nn-title">What's Next?</div>
+    <div class="sh-sub" id="nn-sub">Set your next goal — must be different from the last.</div>
+    <div class="fg"><label class="fl">New Goal (different from last)</label>
+      <input class="fi" id="nn-goal" placeholder="Something new…"/></div>
+    <div class="fg"><label class="fl">Success Metric</label>
+      <input class="fi" id="nn-metric" placeholder="How will you measure it?"/></div>
+    <div class="fg"><label class="fl">Duration</label>
+      <div class="dur-grid" id="nn-dg">
+        <div class="dp" onclick="selDur(7,this,'nn-dg')">7d</div>
+        <div class="dp" onclick="selDur(10,this,'nn-dg')">10d</div>
+        <div class="dp" onclick="selDur(14,this,'nn-dg')">2 wk</div>
+        <div class="dp" onclick="selDur(21,this,'nn-dg')">3 wk</div>
+        <div class="dp" onclick="selDur(28,this,'nn-dg')">4 wk</div>
+        <div class="dp" onclick="selDur(35,this,'nn-dg')">5 wk</div>
+        <div class="dp" onclick="selDur(42,this,'nn-dg')">6 wk</div>
+      </div></div>
+    <button class="btn btn-p" onclick="saveNextGoal()">Set Goal →</button>
+  </div>
+</div>
+
+<!-- MODAL: Goal Menu -->
+<div class="overlay" id="ov-gmenu">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="sh-title" id="gm-title">Goal Actions</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+      <button class="btn btn-t" onclick="resolveFromDetail('achieved')">✅ Mark as Achieved</button>
+      <button class="btn btn-gold" id="gm-ext-btn" onclick="resolveFromDetail('extend')">🔄 Use Extension (+2 weeks)</button>
+      <button class="btn btn-g" onclick="resolveFromDetail('accept')">⏭️ Move On</button>
+      <button class="btn btn-g" onclick="closeOv('ov-gmenu')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Setup -->
+<div class="overlay" id="ov-setup">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="sh-title">⚡ Quick Setup</div>
+    <div class="sh-sub">Takes 30 seconds</div>
+    <div class="fg"><label class="fl">Your Name</label>
+      <input class="fi" id="s-name" placeholder="What should I call you?"/></div>
+    <div class="fg"><label class="fl">Daily Reminder Time (IST)</label>
+      <input type="time" class="fi" id="s-time" value="21:30"/></div>
+    <button class="btn btn-p" onclick="finishSetup()">Start Optimizing →</button>
+  </div>
+</div>
+
+<script>
+// ── State ──
+const DEF={name:'',notifTime:'21:30',notifEnabled:true,notifExpiry:true,
+  mins:{sleep:6,study:1,phys:0.5},goals:[],logs:[],goalHistory:[],
+  _dur:{},_cat:null,_dayType:null,_expiredGoal:null,_detailId:null,_prevPage:'home'};
+let S={...DEF};
+function load(){try{const d=localStorage.getItem('opt2');if(d)S={...S,...JSON.parse(d)};}catch(e){}}
+function save(){localStorage.setItem('opt2',JSON.stringify(S));}
+load();
+
+// ── Utils ──
+function td(){return new Date().toISOString().split('T')[0];}
+function now(){return new Date().toTimeString().slice(0,5);}
+function fmtDate(d){return new Date(d+'T12:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'});}
+function dLeft(e){return Math.ceil((new Date(e+'T23:59:59')-new Date())/86400000);}
+function pct(a,b){return b===0?0:Math.min(100,Math.round(a/b*100));}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
+function toast(msg,d=2200){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d);}
+function openOv(id){document.getElementById(id).classList.add('open');}
+function closeOv(id){document.getElementById(id).classList.remove('open');}
+
+const CL={physical:'🏃 Physical',study:'📚 Study',personal:'🌱 Personal'};
+const CC={physical:'var(--coral)',study:'var(--p2)',personal:'var(--teal)'};
+const LI={sleep:'😴',study:'📚',physical:'🏃',daily:'📋',win:'🏆'};
+const LN={sleep:'Sleep',study:'Study Session',physical:'Physical',daily:'Day Type',win:'Win / Note'};
+
+// ── Router ──
+let _cur='home';
+function nav(id,anim='fade-in'){
+  S._prevPage=_cur;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active','fade-in','slide-in','slide-back'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  const pg=document.getElementById('pg-'+id);
+  if(!pg)return;
+  pg.classList.add('active',anim);
+  _cur=id;
+  const ni=document.getElementById('ni-'+id);
+  if(ni)ni.classList.add('on');
+  if(id==='home')renderHome();
+  if(id==='goals')renderGoals();
+  if(id==='log')renderLog();
+  if(id==='stats')renderStats();
+  if(id==='cfg')renderCfg();
+  if(id==='goal-detail')renderGD();
+}
+function goBack(){nav(S._prevPage||'goals','slide-back');}
+function openGD(id){S._detailId=id;nav('goal-detail','slide-in');}
+
+// ── Setup ──
+function startSetup(){document.getElementById('ob').style.display='none';openOv('ov-setup');}
+async function finishSetup(){
+  S.name=document.getElementById('s-name').value.trim()||'You';
+  S.notifTime=document.getElementById('s-time').value||'21:30';
+  save();closeOv('ov-setup');
+  document.getElementById('bnav').style.display='flex';
+  await reqNotif();scheduleNotif();nav('home');
+}
+
+// ── Notifications ──
+async function reqNotif(){if('Notification'in window&&Notification.permission!=='granted')await Notification.requestPermission();}
+function scheduleNotif(){if(!S.notifEnabled)return;if(navigator.serviceWorker?.controller)navigator.serviceWorker.controller.postMessage({type:'SCHEDULE_NOTIF',time:S.notifTime});}
+function saveNotifTime(v){S.notifTime=v;save();scheduleNotif();toast('⏰ Reminder set for '+v+' IST');}
+function togNotif(el){el.classList.toggle('on');S.notifEnabled=el.classList.contains('on');save();if(S.notifEnabled){reqNotif();scheduleNotif();}toast(S.notifEnabled?'🔔 On':'🔕 Off');}
+function togSet(el,k){el.classList.toggle('on');S[k]=el.classList.contains('on');save();}
+
+// ── Sliders ──
+function updSl(el,type,mn,mx,vid){
+  const p=((el.value-mn)/(mx-mn))*100;
+  el.style.setProperty('--v',p+'%');
+  document.getElementById(vid).textContent=parseFloat(el.value).toFixed(1)+'h';
+  updateMC();
+}
+function initSl(id,mn,mx){
+  const el=document.getElementById(id);if(!el)return;
+  const p=((parseFloat(el.value)-mn)/(mx-mn))*100;
+  el.style.setProperty('--v',p+'%');
+}
+
+// ── Log Type ──
+function onTypeChange(t){
+  ['sleep','study','phys','daily','win'].forEach(x=>{const e=document.getElementById('nl-'+x+'-f');if(e)e.style.display='none';});
+  const map={sleep:'sleep',study:'study',physical:'phys',daily:'daily',win:'win'};
+  const el=document.getElementById('nl-'+map[t]+'-f');if(el)el.style.display='block';
+  if(t==='study')popGoalDrop('nl-sgoal','study');
+  if(t==='physical')popGoalDrop('nl-pgoal','physical');
+  initSl('nls-sleep',4,12);initSl('nls-study',0,4);initSl('nls-phys',0,4);
+  updateMC();
+}
+function popGoalDrop(selId,cat){
+  const s=document.getElementById(selId);s.innerHTML='<option value="">— none —</option>';
+  S.goals.filter(g=>g.cat===cat&&g.status==='active').forEach(g=>s.innerHTML+=`<option value="${g.id}">${g.title.slice(0,38)}</option>`);
+}
+function selDT(t,el){document.querySelectorAll('.dtb').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');S._dayType=t;}
+
+// ── Mins check ──
+function getTotals(logs){
+  return logs.reduce((a,l)=>{
+    if(l.type==='sleep')a.sleep=parseFloat(l.hrs)||0;
+    if(l.type==='study')a.study+=parseFloat(l.hrs)||0;
+    if(l.type==='physical')a.phys+=parseFloat(l.hrs)||0;
+    return a;
+  },{sleep:0,study:0,phys:0});
+}
+function updateMC(){
+  const el=document.getElementById('nl-mcheck');if(!el)return;
+  const tl=S.logs.filter(l=>l.date===td());
+  const tot=getTotals(tl);
+  const t=document.getElementById('nl-type')?.value;
+  if(t==='sleep')tot.sleep=parseFloat(document.getElementById('nls-sleep')?.value||7);
+  if(t==='study')tot.study+=parseFloat(document.getElementById('nls-study')?.value||0);
+  if(t==='physical')tot.phys+=parseFloat(document.getElementById('nls-phys')?.value||0);
+  const m=S.mins,met=tot.sleep>=m.sleep&&tot.study>=m.study&&tot.phys>=m.phys;
+  const miss=[];
+  if(tot.sleep<m.sleep)miss.push(`sleep +${(m.sleep-tot.sleep).toFixed(1)}h`);
+  if(tot.study<m.study)miss.push(`study +${(m.study-tot.study).toFixed(1)}h`);
+  if(tot.phys<m.phys)miss.push(`physical +${(m.phys-tot.phys).toFixed(1)}h`);
+  el.innerHTML=`<div class="ms ${met?'ok':'bad'}"><span class="ms-ico">${met?'✅':'⚠️'}</span><div><div class="ms-t">${met?'Minimums met after this':'Still need:'}</div>${!met?`<div class="ms-d">${miss.join(' · ')}</div>`:''}</div></div>`;
+}
+
+// ── Open / Save Log ──
+function openNewLog(type){
+  type=type||'sleep';
+  document.getElementById('nl-type').value=type;
+  document.getElementById('nl-notes').value='';
+  document.getElementById('nl-wtext').value='';
+  document.getElementById('nl-swhat').value='';
+  document.getElementById('nl-pwhat').value='';
+  S._dayType=null;
+  document.querySelectorAll('.dtb').forEach(b=>b.classList.remove('sel'));
+  onTypeChange(type);openOv('ov-log');
+}
+function saveEntry(){
+  const type=document.getElementById('nl-type').value;
+  const notes=document.getElementById('nl-notes').value.trim();
+  const entry={id:uid(),date:td(),time:now(),type,notes};
+  if(type==='sleep'){entry.hrs=parseFloat(document.getElementById('nls-sleep').value);entry.quality=document.getElementById('nl-sq').value;}
+  else if(type==='study'){entry.hrs=parseFloat(document.getElementById('nls-study').value);entry.what=document.getElementById('nl-swhat').value.trim();entry.goalId=document.getElementById('nl-sgoal').value;}
+  else if(type==='physical'){entry.hrs=parseFloat(document.getElementById('nls-phys').value);entry.what=document.getElementById('nl-pwhat').value.trim();entry.intensity=document.getElementById('nl-pint').value;entry.goalId=document.getElementById('nl-pgoal').value;}
+  else if(type==='daily'){entry.dayType=S._dayType||'Full Day';}
+  else if(type==='win'){entry.text=document.getElementById('nl-wtext').value.trim();if(!entry.text){toast('❌ Write something!');return;}}
+  S.logs.push(entry);save();closeOv('ov-log');toast('✅ Saved');
+  if(_cur==='log')renderLog();if(_cur==='home')renderHome();if(_cur==='goal-detail')renderGD();
+}
+function deleteLog(id){S.logs=S.logs.filter(l=>l.id!==id);save();if(_cur==='log')renderLog();if(_cur==='home')renderHome();}
+
+// ── Goals ──
+function selCat(cat,el){document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('sel','physical','study','personal'));el.classList.add('sel',cat);S._cat=cat;}
+function selDur(d,el,grid){document.querySelectorAll('#'+grid+' .dp').forEach(p=>p.classList.remove('sel'));el.classList.add('sel');S._dur[grid]=d;}
+
+function openNewGoal(cat){
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('sel','physical','study','personal'));
+  document.getElementById('ng-goal').value='';document.getElementById('ng-metric').value='';
+  document.querySelectorAll('#ng-dg .dp').forEach(p=>p.classList.remove('sel'));
+  S._cat=cat||null;
+  document.getElementById('ng-title').textContent='New Goal';
+  if(cat){const idx={physical:0,study:1,personal:2}[cat];const btn=document.querySelectorAll('.cat-btn')[idx];if(btn)selCat(cat,btn);}
+  openOv('ov-goal');
+}
+function saveGoal(){
+  const cat=S._cat,title=document.getElementById('ng-goal').value.trim(),metric=document.getElementById('ng-metric').value.trim();
+  if(!cat){toast('❌ Pick a category');return;}
+  if(!title){toast('❌ Write your goal');return;}
+  if(S.goals.find(g=>g.cat===cat&&g.status==='active')){toast('❌ Already have an active '+CL[cat]+' goal');return;}
+  const dur=S._dur['ng-dg']||21;
+  const end=new Date(Date.now()+dur*86400000).toISOString().split('T')[0];
+  S.goals.push({id:uid(),cat,title,metric,startDate:td(),endDate:end,status:'active',extensions:0});
+  save();closeOv('ov-goal');toast('🎯 Goal locked in!');renderGoals();renderHome();
+}
+
+// ── Expired flow ──
+function checkExpired(){
+  const g=S.goals.find(x=>x.status==='active'&&dLeft(x.endDate)<=0);
+  if(g){S._expiredGoal=g;showExpiredOv(g);}
+}
+function showExpiredOv(g){
+  document.getElementById('exp-title').textContent=CL[g.cat]+' goal ended';
+  document.getElementById('exp-sub').textContent=`"${g.title}"\n\nTime's up. What's your call?`;
+  const used=S.goalHistory.filter(h=>h.cat===g.cat&&h.outcome==='extended').length;
+  const left=2-used;
+  document.getElementById('ext-msg').textContent=`Extensions remaining: ${left}/2`;
+  const btn=document.getElementById('ext-btn');btn.disabled=left<=0;btn.style.opacity=left<=0?.4:1;
+  openOv('ov-expired');
+}
+function resolveGoal(res){const g=S._expiredGoal;if(!g)return;closeOv('ov-expired');_resolve(g,res);}
+function resolveFromDetail(res){closeOv('ov-gmenu');const g=S.goals.find(x=>x.id===S._detailId);if(!g)return;S._expiredGoal=g;_resolve(g,res);}
+function _resolve(g,res){
+  if(res==='extend'){
+    const used=S.goalHistory.filter(h=>h.cat===g.cat&&h.outcome==='extended').length;
+    if(used>=2){toast('❌ Max extensions reached');return;}
+    g.endDate=new Date(Date.now()+14*86400000).toISOString().split('T')[0];
+    g.extensions=(g.extensions||0)+1;
+    S.goalHistory.push({...g,outcome:'extended',resolvedDate:td()});
+    save();toast('🔄 Extended 2 weeks!');renderGoals();renderHome();
+    if(_cur==='goal-detail')renderGD();
+  } else {
+    g.status='completed';g.outcome=res;
+    S.goalHistory.push({...g,resolvedDate:td()});
+    S.goals=S.goals.filter(x=>x.id!==g.id);save();
+    document.getElementById('nn-title').textContent=res==='achieved'?'🎉 What\'s Next?':'⏭️ Moving On';
+    document.getElementById('nn-sub').textContent=`Next ${CL[g.cat]} goal — must be different from the last.`;
+    document.getElementById('nn-goal').value='';document.getElementById('nn-metric').value='';
+    document.querySelectorAll('#nn-dg .dp').forEach(p=>p.classList.remove('sel'));
+    S._cat=g.cat;openOv('ov-next');
+  }
+  checkExpired();
+}
+function saveNextGoal(){
+  const title=document.getElementById('nn-goal').value.trim();
+  const metric=document.getElementById('nn-metric').value.trim();
+  const g=S._expiredGoal;
+  if(g&&title.toLowerCase()===g.title.toLowerCase()){toast('❌ Must be a different goal');return;}
+  if(!title){toast('❌ Write your goal');return;}
+  const dur=S._dur['nn-dg']||21;
+  const end=new Date(Date.now()+dur*86400000).toISOString().split('T')[0];
+  S.goals.push({id:uid(),cat:S._cat,title,metric,startDate:td(),endDate:end,status:'active',extensions:0});
+  save();closeOv('ov-next');toast('🎯 New goal set!');S._expiredGoal=null;
+  renderGoals();renderHome();checkExpired();
+}
+function openGoalMenu(){
+  const g=S.goals.find(x=>x.id===S._detailId);if(!g)return;
+  document.getElementById('gm-title').textContent=g.title.slice(0,40);
+  const used=S.goalHistory.filter(h=>h.cat===g.cat&&h.outcome==='extended').length;
+  const btn=document.getElementById('gm-ext-btn');btn.disabled=2-used<=0;btn.style.opacity=2-used<=0?.4:1;
+  openOv('ov-gmenu');
+}
+
+// ── Render Home ──
+function renderHome(){
+  const h=new Date().getHours();
+  document.getElementById('h-greet').textContent=(h<12?'Good morning':h<17?'Good afternoon':'Good evening')+', '+(S.name||'You')+' ⚡';
+  document.getElementById('h-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
+  // streak
+  const dates=[...new Set(S.logs.map(l=>l.date))].sort().reverse();
+  let str=0,chk=td();
+  for(const d of dates){if(d===chk){str++;const x=new Date(chk);x.setDate(x.getDate()-1);chk=x.toISOString().split('T')[0];}else if(d<chk)break;}
+  document.getElementById('h-streak').textContent=str;
+  // mins
+  const tl=S.logs.filter(l=>l.date===td()),tot=getTotals(tl),m=S.mins;
+  const met=tot.sleep>=m.sleep&&tot.study>=m.study&&tot.phys>=m.phys;
+  const miss=[];
+  if(tot.sleep<m.sleep)miss.push('sleep');if(tot.study<m.study)miss.push('study');if(tot.phys<m.phys)miss.push('physical');
+  document.getElementById('h-mins').innerHTML=tl.length===0
+    ?`<div class="ms bad"><span class="ms-ico">📝</span><div><div class="ms-t">Nothing logged yet</div><div class="ms-d">Tap + to add first entry</div></div></div>`
+    :`<div class="ms ${met?'ok':'bad'}"><span class="ms-ico">${met?'✅':'⚠️'}</span><div><div class="ms-t">${met?'Minimums met':'Below minimum'}</div><div class="ms-d">Sleep ${tot.sleep}h · Study ${tot.study}h · Phys ${tot.phys}h${!met?'<br/>Missing: '+miss.join(', '):''}</div></div></div>`;
+  // goals
+  let gh='';
+  if(S.goals.length===0){gh=`<div class="card" style="text-align:center;padding:24px;color:var(--muted)">No active goals<br/><button class="btn btn-p btn-sm" style="margin-top:14px;max-width:200px" onclick="openNewGoal()">Set First Goal</button></div>`;}
+  else S.goals.forEach(g=>{
+    const dl=dLeft(g.endDate),total=Math.ceil((new Date(g.endDate+' 23:59:59')-new Date(g.startDate+'T00:00:00'))/86400000);
+    const pr=pct(total-Math.max(0,dl),total);
+    const dc=dl<=0?'danger':dl<=3?'warn':'ok',dt=dl<=0?'EXPIRED':dl===1?'⚠️ LAST DAY':dl+'d left';
+    gh+=`<div class="gc ${g.cat}" onclick="openGD('${g.id}')">
+      <div class="gc-top"><span class="badge">${CL[g.cat]}</span><span class="dlc ${dc}">${dt}</span></div>
+      <div class="gc-title">${g.title}</div>${g.metric?`<div class="gc-meta">Target: ${g.metric}</div>`:''}
+      <div class="prog"><div class="prog-fill" style="width:${pr}%"></div></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+        <div class="ext-pips"><div class="ext-pip ${g.extensions>=1?'used':'avail'}"></div><div class="ext-pip ${g.extensions>=2?'used':'avail'}"></div></div>
+        <span style="font-size:10px;color:var(--muted);font-family:var(--fm)">${pr}% · tap for detail →</span>
+      </div></div>`;
+  });
+  document.getElementById('h-goals').innerHTML=gh;
+  checkExpired();
+}
+
+// ── Render Goal Detail ──
+function renderGD(){
+  const g=S.goals.find(x=>x.id===S._detailId);if(!g){goBack();return;}
+  const dl=dLeft(g.endDate);
+  const total=Math.ceil((new Date(g.endDate+' 23:59:59')-new Date(g.startDate+'T00:00:00'))/86400000);
+  const pr=pct(total-Math.max(0,dl),total);
+  document.getElementById('gd-hdr-title').textContent=CL[g.cat];
+  document.getElementById('gd-hdr-sub').textContent=dl<=0?'EXPIRED':dl===1?'Last day!':dl+' days remaining';
+  const used=S.goalHistory.filter(h=>h.cat===g.cat&&h.outcome==='extended').length,left=2-used;
+  document.getElementById('gd-hero').innerHTML=`
+    <div style="padding:4px 0 16px">
+      <div style="font-family:var(--fm);font-size:10px;letter-spacing:2px;color:${CC[g.cat]};margin-bottom:10px">${CL[g.cat].toUpperCase()}</div>
+      <div style="font-family:var(--fh);font-size:24px;font-weight:800;line-height:1.2;margin-bottom:8px">${g.title}</div>
+      ${g.metric?`<div style="font-size:14px;color:var(--muted);margin-bottom:16px">📍 ${g.metric}</div>`:''}
+      <div class="gd-prog-wrap"><div class="gd-prog-fill" style="width:${pr}%;background:${CC[g.cat]}"></div></div>
+      <div style="display:flex;justify-content:space-between;font-family:var(--fm);font-size:10px;color:var(--muted);margin-bottom:16px"><span>${pr}% elapsed</span><span>${Math.max(0,dl)}d left of ${total}d</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+        <div class="gd-date-box"><div class="gd-date-lbl">Started</div><div style="font-size:15px;font-weight:600">${fmtDate(g.startDate)}</div></div>
+        <div class="gd-date-box"><div class="gd-date-lbl">${dl<=0?'Ended':'Ends'}</div><div style="font-size:15px;font-weight:600;${dl<=3&&dl>0?'color:var(--gold)':dl<=0?'color:var(--coral)':''}">${fmtDate(g.endDate)}</div></div>
+      </div>
+      <div style="font-family:var(--fm);font-size:9px;letter-spacing:1.5px;color:var(--muted);margin-bottom:8px">EXTENSIONS</div>
+      <div class="ext-pips"><div class="ext-pip ${g.extensions>=1?'used':'avail'}"></div><div class="ext-pip ${g.extensions>=2?'used':'avail'}"></div></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px">${left}/2 remaining this year</div>
+    </div>`;
+  // linked logs
+  const linked=S.logs.filter(l=>l.goalId===g.id).sort((a,b)=>b.date.localeCompare(a.date)||b.time.localeCompare(a.time));
+  let lh='';
+  if(linked.length===0)lh='<div style="color:var(--muted);font-size:13px;padding:4px 0">No entries linked to this goal yet</div>';
+  else{
+    const hrs=linked.reduce((s,l)=>s+(parseFloat(l.hrs)||0),0);
+    lh=`<div style="margin-bottom:10px;font-family:var(--fm);font-size:10px;color:var(--muted)">${linked.length} sessions · ${hrs.toFixed(1)}h total</div>`;
+    linked.forEach(l=>{
+      let detail=l.hrs?l.hrs+'h':'';if(l.what)detail+=(detail?' · ':'')+l.what;
+      lh+=`<div class="le"><div class="le-ico">${LI[l.type]||'📌'}</div><div class="le-info"><div class="le-name">${detail||LN[l.type]}</div><div class="le-meta">${fmtDate(l.date)} at ${l.time}</div></div></div>`;
+    });
+  }
+  document.getElementById('gd-logs').innerHTML=lh;
+  const lt=g.cat==='study'?'study':g.cat==='physical'?'physical':'win';
+  document.getElementById('gd-actions').innerHTML=`<button class="btn btn-p" style="margin-bottom:10px" onclick="openNewLog('${lt}')">＋ Log Entry for This Goal</button>`;
+}
+
+// ── Render Goals ──
+function renderGoals(){
+  let h='';
+  ['physical','study','personal'].forEach(cat=>{
+    const a=S.goals.find(g=>g.cat===cat&&g.status==='active');
+    const used=S.goalHistory.filter(x=>x.cat===cat&&x.outcome==='extended').length,left=2-used;
+    h+=`<div class="gc ${cat}" onclick="${a?`openGD('${a.id}')`:`openNewGoal('${cat}')`}">
+      <div class="gc-top"><span class="badge">${CL[cat]}</span><span style="font-size:10px;color:var(--muted);font-family:var(--fm)">Ext: ${left}/2</span></div>`;
+    if(a){
+      const dl=dLeft(a.endDate),total=Math.ceil((new Date(a.endDate+' 23:59:59')-new Date(a.startDate+'T00:00:00'))/86400000);
+      const pr=pct(total-Math.max(0,dl),total),dc=dl<=0?'danger':dl<=3?'warn':'ok';
+      h+=`<div class="gc-title">${a.title}</div>${a.metric?`<div class="gc-meta" style="margin-bottom:8px">📍 ${a.metric}</div>`:''}
+        <div class="gc-meta" style="margin-bottom:8px">${fmtDate(a.startDate)} → ${fmtDate(a.endDate)} · <span class="dlc ${dc}">${dl<=0?'EXPIRED':dl+'d left'}</span></div>
+        <div class="prog"><div class="prog-fill" style="width:${pr}%"></div></div>
+        <div style="font-size:10px;color:var(--muted);font-family:var(--fm);margin-top:8px">Tap for full detail →</div>`;
+    } else {
+      h+=`<div style="color:var(--muted);font-size:13px;margin-bottom:8px">No active goal</div><div style="font-size:12px;color:${CC[cat]}">＋ Tap to set a goal</div>`;
+    }
+    h+=`</div>`;
+  });
+  document.getElementById('g-active').innerHTML=h;
+  const oMap={achieved:'✅ Achieved',extended:'🔄 Extended',accept:'⏭️ Moved On'};
+  const cMap={achieved:'var(--teal)',extended:'var(--gold)',accept:'var(--muted)'};
+  let hh='';
+  if(S.goalHistory.length===0)hh='<div style="color:var(--muted);font-size:13px;padding:4px 0">No completed goals yet</div>';
+  else [...S.goalHistory].reverse().forEach(g=>{
+    hh+=`<div class="hi"><div class="hi-dot" style="background:${CC[g.cat]}"></div>
+      <div class="hi-info"><div class="hi-name">${g.title}</div><div class="hi-meta">${CL[g.cat]} · ${fmtDate(g.startDate)} – ${fmtDate(g.resolvedDate||g.endDate)}</div></div>
+      <span class="hi-out" style="color:${cMap[g.outcome]}">${oMap[g.outcome]||g.outcome}</span></div>`;
+  });
+  document.getElementById('g-hist').innerHTML=hh;
+}
+
+// ── Render Log ──
+function renderLog(){
+  document.getElementById('l-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'short'});
+  const tl=S.logs.filter(l=>l.date===td()).sort((a,b)=>b.time.localeCompare(a.time));
+  let eh='';
+  if(tl.length===0)eh='<div style="color:var(--muted);font-size:13px;padding:4px 0">No entries yet — tap + to add one</div>';
+  else tl.forEach(l=>{
+    let det='';
+    if(l.type==='sleep')det=l.hrs+'h sleep'+(l.quality?' · '+l.quality:'');
+    else if(l.type==='study')det=l.hrs+'h'+(l.what?' · '+l.what:'');
+    else if(l.type==='physical')det=l.hrs+'h'+(l.what?' · '+l.what:'')+(l.intensity?' · '+l.intensity:'');
+    else if(l.type==='daily')det='Day: '+(l.dayType||'—');
+    else if(l.type==='win')det=(l.text||'').slice(0,60);
+    eh+=`<div class="le"><div class="le-ico">${LI[l.type]||'📌'}</div>
+      <div class="le-info"><div class="le-name">${LN[l.type]}</div><div class="le-meta">${det}</div></div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <span style="font-family:var(--fm);font-size:10px;color:var(--muted2)">${l.time}</span>
+        <span style="font-size:14px;cursor:pointer;color:var(--muted)" onclick="deleteLog('${l.id}')">🗑</span>
+      </div></div>`;
+  });
+  document.getElementById('l-today').innerHTML=eh;
+  const tot=getTotals(tl),m=S.mins,met=tot.sleep>=m.sleep&&tot.study>=m.study&&tot.phys>=m.phys;
+  document.getElementById('l-status').innerHTML=`<div class="ms ${met?'ok':'bad'}"><span class="ms-ico">${met?'✅':'⚠️'}</span><div><div class="ms-t">${met?'All minimums met':'Minimums not met'}</div><div class="ms-d">Sleep ${tot.sleep}h · Study ${tot.study}h · Physical ${tot.phys}h</div></div></div>`;
+  const past=S.logs.filter(l=>l.date!==td()).sort((a,b)=>b.date.localeCompare(a.date)||b.time.localeCompare(a.time)).slice(0,40);
+  let ph='';if(past.length===0)ph='<div style="color:var(--muted);font-size:13px">No past entries</div>';
+  else{let ld='';past.forEach(l=>{
+    if(l.date!==ld){ph+=`<div style="font-family:var(--fm);font-size:10px;color:var(--muted);padding:10px 0 4px;letter-spacing:1px">${fmtDate(l.date)}</div>`;ld=l.date;}
+    let det=l.hrs?l.hrs+'h':'';if(l.what)det+=(det?' · ':'')+l.what;if(l.text)det=(l.text||'').slice(0,50);
+    ph+=`<div class="le" style="padding:8px 0"><div class="le-ico" style="font-size:16px">${LI[l.type]||'📌'}</div>
+      <div class="le-info"><div class="le-name" style="font-size:12px">${LN[l.type]}${det?' · '+det:''}</div></div>
+      <span style="font-family:var(--fm);font-size:10px;color:var(--muted2)">${l.time}</span></div>`;
+  });}
+  document.getElementById('l-past').innerHTML=ph;
+}
+
+// ── Render Stats ──
+function renderStats(){
+  const l30=S.logs.filter(l=>(Date.now()-new Date(l.date+'T12:00:00').getTime())<30*86400000);
+  const dm={};l30.forEach(l=>{if(!dm[l.date])dm[l.date]={sleep:0,study:0,phys:0};
+    if(l.type==='sleep')dm[l.date].sleep=parseFloat(l.hrs)||0;
+    if(l.type==='study')dm[l.date].study+=parseFloat(l.hrs)||0;
+    if(l.type==='physical')dm[l.date].phys+=parseFloat(l.hrs)||0;
+  });
+  const days=Object.values(dm);
+  const avg=k=>days.length?(days.reduce((s,d)=>s+d[k],0)/days.length).toFixed(1):'—';
+  const mm=days.filter(d=>d.sleep>=S.mins.sleep&&d.study>=S.mins.study&&d.phys>=S.mins.phys).length;
+  const flex=S.logs.filter(l=>l.type==='daily'&&l.dayType==='Flex Day').length;
+  document.getElementById('st-boxes').innerHTML=`
+    <div class="sbox"><span class="sbox-n" style="color:var(--teal)">${Object.keys(dm).length}</span><span class="sbox-l">Days logged</span></div>
+    <div class="sbox"><span class="sbox-n" style="color:var(--gold)">${flex}</span><span class="sbox-l">Flex days</span></div>
+    <div class="sbox"><span class="sbox-n" style="color:var(--p2)">${mm}</span><span class="sbox-l">Mins met</span></div>`;
+  document.getElementById('st-avgs').innerHTML=`
+    <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">😴 Sleep</span><span style="font-family:var(--fm);color:var(--teal)">${avg('sleep')}h</span></div>
+    <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">📚 Study</span><span style="font-family:var(--fm);color:var(--p2)">${avg('study')}h</span></div>
+    <div style="display:flex;justify-content:space-between;padding:10px 0"><span style="color:var(--muted)">🏃 Physical</span><span style="font-family:var(--fm);color:var(--coral)">${avg('phys')}h</span></div>`;
+  const l7=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const ds=d.toISOString().split('T')[0];l7.push({lbl:d.toLocaleDateString('en-IN',{weekday:'short'}),data:dm[ds]});}
+  let wh=`<div style="display:flex;gap:6px;align-items:flex-end;height:70px;margin-bottom:8px">`;
+  l7.forEach(({lbl,data})=>{const h=data?Math.max(6,pct(data.study,4)*.7):4;const c=data?(data.study>=S.mins.study?'var(--p2)':'var(--coral)'):'var(--bg3)';wh+=`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:100%;background:${c};border-radius:4px 4px 0 0;height:${h}px"></div><span style="font-size:9px;color:var(--muted);font-family:var(--fm)">${lbl}</span></div>`;});
+  wh+=`</div><div style="font-size:10px;color:var(--muted);text-align:center;font-family:var(--fm)">Purple = met · Red = missed</div>`;
+  document.getElementById('st-week').innerHTML=wh;
+  const oc={achieved:0,extended:0,accept:0};S.goalHistory.forEach(g=>{if(oc[g.outcome]!==undefined)oc[g.outcome]++;});
+  document.getElementById('st-outs').innerHTML=`
+    <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">✅ Achieved</span><span style="font-family:var(--fm);color:var(--teal)">${oc.achieved}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">🔄 Extended</span><span style="font-family:var(--fm);color:var(--gold)">${oc.extended}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:10px 0"><span style="color:var(--muted)">⏭️ Moved On</span><span style="font-family:var(--fm);color:var(--muted)">${oc.accept}</span></div>`;
+}
+
+// ── Render Settings ──
+function renderCfg(){
+  document.getElementById('notif-time').value=S.notifTime||'21:30';
+  document.getElementById('tog-notif').className='tog '+(S.notifEnabled?'on':'');
+  document.getElementById('tog-exp').className='tog '+(S.notifExpiry!==false?'on':'');
+  document.getElementById('cfg-name').value=S.name||'';
+  document.getElementById('m-sleep').value=S.mins.sleep;
+  document.getElementById('m-study').value=S.mins.study;
+  document.getElementById('m-phys').value=S.mins.phys;
+}
+function saveMin(k,v){S.mins[k]=parseFloat(v);save();toast('✅ Minimum updated');}
+function saveName(v){S.name=v.trim()||S.name;save();}
+function exportData(){const b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='optimize_backup.json';a.click();}
+function confirmReset(){if(confirm('Reset ALL data?')){localStorage.removeItem('opt2');location.reload();}}
+
+// ── Init ──
+window.addEventListener('load',()=>{
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').then(()=>scheduleNotif());
+  if(S.name){document.getElementById('ob').style.display='none';document.getElementById('bnav').style.display='flex';nav('home');checkExpired();}
+  initSl('nls-sleep',4,12);initSl('nls-study',0,4);initSl('nls-phys',0,4);
+});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.name)checkExpired();});
+</script>
+</body>
+</html>
